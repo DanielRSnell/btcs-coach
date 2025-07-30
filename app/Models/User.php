@@ -21,6 +21,12 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'pi_behavioral_pattern_id',
+        'pi_raw_scores',
+        'pi_assessed_at',
+        'pi_assessor_name',
+        'pi_notes',
     ];
 
     /**
@@ -43,6 +49,112 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'pi_raw_scores' => 'array',
+            'pi_assessed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Get the coaching sessions for the user.
+     */
+    public function coachingSessions()
+    {
+        return $this->hasMany(CoachingSession::class);
+    }
+
+    /**
+     * Get the achievements for the user.
+     */
+    public function achievements()
+    {
+        return $this->hasMany(Achievement::class);
+    }
+
+    /**
+     * Get the action items for the user.
+     */
+    public function actionItems()
+    {
+        return $this->hasMany(ActionItem::class);
+    }
+
+    /**
+     * Check if user is an admin.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Check if user is a member.
+     */
+    public function isMember(): bool
+    {
+        return $this->role === 'member';
+    }
+
+    /**
+     * Get the modules accessible to this user.
+     */
+    public function accessibleModules()
+    {
+        return $this->belongsToMany(Module::class, 'module_user');
+    }
+
+    /**
+     * Get the PI behavioral pattern for this user.
+     */
+    public function piBehavioralPattern()
+    {
+        return $this->belongsTo(PiBehavioralPattern::class);
+    }
+
+    /**
+     * Check if user has completed PI assessment.
+     */
+    public function hasPiAssessment(): bool
+    {
+        return !is_null($this->pi_behavioral_pattern_id);
+    }
+
+    /**
+     * Get user's individual PI scores.
+     */
+    public function getPiScores(): ?array
+    {
+        return $this->pi_raw_scores;
+    }
+
+    /**
+     * Get user's dominance score.
+     */
+    public function getDominanceScore(): ?int
+    {
+        return $this->pi_raw_scores['dominance'] ?? null;
+    }
+
+    /**
+     * Get user's extraversion score.
+     */
+    public function getExtraversionScore(): ?int
+    {
+        return $this->pi_raw_scores['extraversion'] ?? null;
+    }
+
+    /**
+     * Get user's patience score.
+     */
+    public function getPatienceScore(): ?int
+    {
+        return $this->pi_raw_scores['patience'] ?? null;
+    }
+
+    /**
+     * Get user's formality score.
+     */
+    public function getFormalityScore(): ?int
+    {
+        return $this->pi_raw_scores['formality'] ?? null;
     }
 }

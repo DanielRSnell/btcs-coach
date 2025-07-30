@@ -1,6 +1,7 @@
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { FormEventHandler } from 'react';
+import { motion } from 'framer-motion';
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -39,9 +40,20 @@ export default function Login({ status, canResetPassword }: LoginProps) {
         <AuthLayout title="Log in to your account" description="Enter your email and password below to log in">
             <Head title="Log in" />
 
-            <form className="flex flex-col gap-6" onSubmit={submit}>
+            <motion.form 
+                className="flex flex-col gap-6" 
+                onSubmit={submit}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+            >
                 <div className="grid gap-6">
-                    <div className="grid gap-2">
+                    <motion.div 
+                        className="grid gap-2"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5, delay: 0.1 }}
+                    >
                         <Label htmlFor="email">Email address</Label>
                         <Input
                             id="email"
@@ -55,9 +67,14 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             placeholder="email@example.com"
                         />
                         <InputError message={errors.email} />
-                    </div>
+                    </motion.div>
 
-                    <div className="grid gap-2">
+                    <motion.div 
+                        className="grid gap-2"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5, delay: 0.2 }}
+                    >
                         <div className="flex items-center">
                             <Label htmlFor="password">Password</Label>
                             {canResetPassword && (
@@ -77,9 +94,14 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             placeholder="Password"
                         />
                         <InputError message={errors.password} />
-                    </div>
+                    </motion.div>
 
-                    <div className="flex items-center space-x-3">
+                    <motion.div 
+                        className="flex items-center space-x-3"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5, delay: 0.3 }}
+                    >
                         <Checkbox
                             id="remember"
                             name="remember"
@@ -88,21 +110,32 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             tabIndex={3}
                         />
                         <Label htmlFor="remember">Remember me</Label>
-                    </div>
+                    </motion.div>
 
-                    <Button type="submit" className="mt-4 w-full" tabIndex={4} disabled={processing}>
-                        {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                        Log in
-                    </Button>
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.4 }}
+                    >
+                        <Button type="submit" className="mt-4 w-full" tabIndex={4} disabled={processing}>
+                            {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                            Log in
+                        </Button>
+                    </motion.div>
                 </div>
 
-                <div className="text-center text-sm text-muted-foreground">
+                <motion.div 
+                    className="text-center text-sm text-muted-foreground"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.5 }}
+                >
                     Don't have an account?{' '}
                     <TextLink href={route('register')} tabIndex={5}>
                         Sign up
                     </TextLink>
-                </div>
-            </form>
+                </motion.div>
+            </motion.form>
 
             {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
         </AuthLayout>
