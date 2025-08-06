@@ -1,0 +1,14 @@
+[variables]
+NODE_VERSION = "20"
+
+[phases.build]
+cmds = [
+  "npm ci",
+  "npm run build"
+]
+
+[phases.setup]
+cmds = [
+  "mkdir -p database",
+  "touch database/database.sqlite"
+]

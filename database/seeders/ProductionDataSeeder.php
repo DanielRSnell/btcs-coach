@@ -61,8 +61,8 @@ class ProductionDataSeeder extends Seeder
             [
                 'name' => 'Victor Morales',
                 'email' => 'victor@umbral.ai',
-                'password' => '$2y$12$SFqpLKu0YmbWflqquf0kWunfRpofQlQt/02hyp5q/sPNrnf4./DQy', // password
-                'role' => 'member',
+                'password' => Hash::make('password'), // password
+                'role' => 'admin',
                 'email_verified_at' => '2025-08-06 03:25:29',
                 'pi_behavioral_pattern_id' => null, // Will be set after patterns are created
                 'pi_raw_scores' => [
@@ -138,8 +138,8 @@ class ProductionDataSeeder extends Seeder
             [
                 'name' => 'Matt Putman',
                 'email' => 'matt.putman@example.com',
-                'password' => '$2y$12$CrcaxuQD1OfYGfgVRfjBDOzLM8STbOjMrJTKUL60Ibvm3gSp0K1h.', // password
-                'role' => 'member',
+                'password' => Hash::make('password'), // password
+                'role' => 'admin',
                 'email_verified_at' => '2025-08-06 03:25:30',
                 'pi_behavioral_pattern_id' => null, // Will be set after patterns are created
                 'pi_raw_scores' => [
