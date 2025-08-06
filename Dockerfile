@@ -51,8 +51,7 @@ RUN mkdir -p bootstrap/cache
 
 # Run migrations and seed data
 RUN php artisan migrate --force
-RUN php artisan db:seed --force
-RUN php artisan db:seed --class=DashboardTestSeeder --force
+RUN php artisan db:seed --class=ProductionDataSeeder --force
 
 # Cache configuration for production
 RUN php artisan config:cache

@@ -67,21 +67,24 @@ docker run -d -p 80:80 --name btcs-coach btcs-coach
 
 ## 📦 What Gets Automatically Set Up
 
-### 🧑‍💼 Test Users
-- **Email**: `john@btcs.com`
-- **Password**: `password`
-- **Role**: Admin
+### 🧑‍💼 Pre-loaded Users
+- **Admin**: `admin@btcs.com` / `password` (Admin role)
+- **Main User**: `john@btcs.com` / `password` (Admin role)
+- **Team Members**: 
+  - `victor@umbral.ai` / `password` (Member)
+  - `matt.putman@example.com` / `password` (Member)
 
-### 📚 Pre-loaded Modules
-1. **Leadership Fundamentals** (Beginner, 60 min)
-2. **Advanced Sales Techniques** (Advanced, 90 min)  
-3. **Time Management Mastery** (Intermediate, 45 min)
+### 📚 Pre-loaded Modules (H.G. Fenton Coaching System)
+1. **Factual & Policy Retrieval** (Beginner, 5 min) - Company policies and procedures
+2. **Personalization & Self-Awareness (Predictive Index)** (Intermediate, 10 min) - PI profile coaching
+3. **Core Coaching Scenarios** (Advanced, 20 min) - Complex coaching using PI, SLII, and Courageous Conversations
+4. **Performance & Growth Cycle** (Intermediate, 15 min) - Performance reviews and compensation planning
+5. **Advanced Team & Culture Application** (Advanced, 25 min) - Team dynamics and culture integration
 
-### 🎯 Sample Action Items
-- Team one-on-ones scheduling
-- Competitor research tasks
-- Documentation updates
-- Performance reviews
+### 🎯 Pre-loaded Action Items
+- **Completed**: Active listening practice, PI assessment, team one-on-ones, documentation updates
+- **In Progress**: Competitor research analysis
+- **Pending**: Communication style adaptation, team readiness assessment, leadership goals review
 
 ### 🏆 Achievement System
 - First Steps badge
