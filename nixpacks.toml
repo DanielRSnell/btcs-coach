@@ -1,5 +1,5 @@
-[providers]
-php = "8.3"
+[variables]
+PHP_VERSION = "8.3"
 
 [phases.setup]
 cmds = [
