@@ -23,6 +23,14 @@ class DashboardController extends Controller
             'availableModules' => $this->getAvailableModules($user),
         ];
 
+        // Debug for Railway deployment
+        \Log::info('Dashboard Controller - About to render Dashboard component');
+        \Log::info('Manifest exists: ' . (file_exists(public_path('build/manifest.json')) ? 'YES' : 'NO'));
+        if (file_exists(public_path('build/manifest.json'))) {
+            $manifest = json_decode(file_get_contents(public_path('build/manifest.json')), true);
+            \Log::info('Dashboard in manifest: ' . (isset($manifest['resources/js/pages/Dashboard.tsx']) ? 'YES' : 'NO'));
+        }
+
         return Inertia::render('Dashboard', $data);
     }
 
