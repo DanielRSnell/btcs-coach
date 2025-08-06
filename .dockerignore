@@ -30,7 +30,7 @@ Thumbs.db
 
 # Local development
 /public/hot
-/public/build
+# /public/build - INCLUDE built assets for production
 /storage/*.key
 /storage/logs/*
 /bootstrap/cache/*

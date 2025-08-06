@@ -1,0 +1,3 @@
+# Don't ignore our built assets
+!public/build/
+!public/build/**

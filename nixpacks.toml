@@ -1,3 +1,0 @@
-# Skip all Node.js build phases - use committed assets
-[phases.build]
-cmds = []
