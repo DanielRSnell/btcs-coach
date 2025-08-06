@@ -178,24 +178,24 @@ set -e
 echo "🚀 Starting BTCS Coach container... (Build: Aug 6 2025)"
 
 # Handle Railway's PORT environment variable - Railway might set it to empty string
-echo "🔍 Debug - Raw PORT env var: '${PORT}'"
-echo "🔍 Debug - PORT length: ${#PORT}"
+echo "🔍 Debug - Raw PORT env var: '\${PORT}'"
+echo "🔍 Debug - PORT length: \${#PORT}"
 
 # Force set to 80 if empty or unset
-if [ -z "${PORT}" ] || [ "${PORT}" = "" ]; then
+if [ -z "\${PORT}" ] || [ "\${PORT}" = "" ]; then
     PORT_VALUE=80
-    echo "🔧 PORT was empty/unset, forcing to: $PORT_VALUE"
+    echo "🔧 PORT was empty/unset, forcing to: \$PORT_VALUE"
 else
-    PORT_VALUE="${PORT}"
-    echo "🔧 Using Railway PORT: $PORT_VALUE"
+    PORT_VALUE="\${PORT}"
+    echo "🔧 Using Railway PORT: \$PORT_VALUE"
 fi
 
-echo "🌐 Final port value: $PORT_VALUE"
+echo "🌐 Final port value: \$PORT_VALUE"
 
 # Update nginx config to use the correct port
-if [ "$PORT_VALUE" != "80" ]; then
-    echo "📝 Updating nginx to use port $PORT_VALUE"
-    sed -i "s/listen 80;/listen $PORT_VALUE;/" /etc/nginx/http.d/default.conf
+if [ "\$PORT_VALUE" != "80" ]; then
+    echo "📝 Updating nginx to use port \$PORT_VALUE"
+    sed -i "s/listen 80;/listen \$PORT_VALUE;/" /etc/nginx/http.d/default.conf
 else
     echo "📝 Using default port 80"
 fi
