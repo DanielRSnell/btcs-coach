@@ -13,15 +13,20 @@ This guide provides everything you need to deploy BTCS Coach using Docker and Co
 
 ## 🐳 Coolify Deployment (Recommended)
 
-### Step 1: Create New Service
+### Option 1: Docker Compose (Recommended)
+1. Log into your Coolify dashboard
+2. Click **"New Resource"** → **"Service"** → **"Docker Compose"**
+3. **Git Repository**: `git@github.com:DanielRSnell/btcs-coach.git`
+4. **Branch**: `main`
+5. **Docker Compose Path**: `./docker-compose.yml`
+
+### Option 2: Single Dockerfile
 1. Log into your Coolify dashboard
 2. Click **"New Resource"** → **"Service"** → **"Docker Image"**
 3. Choose **"Build from Dockerfile"**
-
-### Step 2: Configure Repository
-- **Git Repository**: `https://github.com/your-username/btcs-coach.git`
-- **Branch**: `main`
-- **Dockerfile Path**: `./Dockerfile`
+4. **Git Repository**: `git@github.com:DanielRSnell/btcs-coach.git`
+5. **Branch**: `main`
+6. **Dockerfile Path**: `./Dockerfile`
 
 ### Step 3: Environment Variables
 ```env
@@ -53,17 +58,34 @@ Click **"Deploy"** and Coolify will:
 
 ## 🔧 Manual Docker Deployment
 
-If not using Coolify:
-
+### Using Docker Compose (Recommended)
 ```bash
 # Clone repository
-git clone https://github.com/your-username/btcs-coach.git
+git clone git@github.com:DanielRSnell/btcs-coach.git
 cd btcs-coach
 
+# Start with Docker Compose
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop
+docker-compose down
+```
+
+### Using Plain Docker
+```bash
 # Build and run
 docker build -t btcs-coach .
 docker run -d -p 80:80 --name btcs-coach btcs-coach
 ```
+
+### Benefits of Docker Compose:
+- ✅ **Persistent Data** - Volumes for database and storage
+- ✅ **Health Checks** - Automatic restart on failures
+- ✅ **Environment Management** - Cleaner config
+- ✅ **Production Ready** - Better for scaling
 
 ## 📦 What Gets Automatically Set Up
 

@@ -1,4 +1,4 @@
-# BTCS Coach - One-Click Deployment
+# BTCS Coach - Production Ready Container
 FROM php:8.2-fpm-alpine
 
 # Install system dependencies and Node.js
@@ -25,98 +25,71 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy application files (this will use the repository context in Coolify)
+# Copy application files
 COPY . .
 
 # Install dependencies and build assets
 RUN composer install --no-dev --optimize-autoloader --no-interaction
-RUN npm install
-RUN npm run build
+RUN npm install && npm run build && npm cache clean --force
 
 # Set up Laravel environment
-RUN cp .env.example .env
-RUN php artisan key:generate
+RUN cp .env.example .env && \
+    php artisan key:generate
 
-# Configure SQLite database
-RUN mkdir -p database
-RUN touch database/database.sqlite
-RUN chmod 664 database/database.sqlite
+# Set up storage and database directories
+RUN mkdir -p database storage/logs storage/framework/{cache,sessions,views} bootstrap/cache && \
+    touch database/database.sqlite && \
+    chmod -R 775 storage bootstrap/cache database
 
-# Set up storage directories
-RUN mkdir -p storage/logs
-RUN mkdir -p storage/framework/cache
-RUN mkdir -p storage/framework/sessions
-RUN mkdir -p storage/framework/views
-RUN mkdir -p bootstrap/cache
-
-# Run migrations and seed data
-RUN php artisan migrate --force
-RUN php artisan db:seed --class=ProductionDataSeeder --force
-
-# Cache configuration for production
-RUN php artisan config:cache
-RUN php artisan route:cache
-RUN php artisan view:cache
-
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html
-RUN chmod -R 755 /var/www/html/storage
-RUN chmod -R 755 /var/www/html/bootstrap/cache
+# Run initial setup
+RUN php artisan migrate --force && \
+    php artisan db:seed --class=ProductionDataSeeder --force && \
+    php artisan config:cache && \
+    php artisan route:cache && \
+    php artisan view:cache
 
 # Configure Nginx
-COPY <<EOF /etc/nginx/nginx.conf
-worker_processes auto;
-error_log /var/log/nginx/error.log warn;
-pid /var/run/nginx.pid;
+RUN cat > /etc/nginx/http.d/default.conf << 'EOF'
+server {
+    listen 80;
+    server_name _;
+    root /var/www/html/public;
+    index index.php;
 
-events {
-    worker_connections 1024;
-}
+    client_max_body_size 100M;
 
-http {
-    include /etc/nginx/mime.types;
-    default_type application/octet-stream;
-    
-    log_format main '\$remote_addr - \$remote_user [\$time_local] "\$request" '
-                    '\$status \$body_bytes_sent "\$http_referer" '
-                    '"\$http_user_agent" "\$http_x_forwarded_for"';
-    
-    access_log /var/log/nginx/access.log main;
-    
-    sendfile on;
-    tcp_nopush on;
-    keepalive_timeout 65;
-    gzip on;
-    
-    server {
-        listen 80;
-        server_name localhost;
-        root /var/www/html/public;
-        index index.php;
-        
-        location / {
-            try_files \$uri \$uri/ /index.php?\$query_string;
-        }
-        
-        location ~ \.php\$ {
-            fastcgi_pass 127.0.0.1:9000;
-            fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
-            include fastcgi_params;
-        }
-        
-        location ~ /\.(?!well-known).* {
-            deny all;
-        }
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+        fastcgi_read_timeout 300;
+        fastcgi_buffer_size 128k;
+        fastcgi_buffers 4 256k;
+        fastcgi_busy_buffers_size 256k;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+
+    location ~* \.(css|gif|ico|jpeg|jpg|js|png|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
     }
 }
 EOF
 
 # Configure Supervisor
-COPY <<EOF /etc/supervisor/conf.d/supervisord.conf
+RUN cat > /etc/supervisor/conf.d/supervisord.conf << 'EOF'
 [supervisord]
 nodaemon=true
 user=root
-logfile=/var/log/supervisor/supervisord.log
+logfile=/dev/stdout
+logfile_maxbytes=0
 pidfile=/var/run/supervisord.pid
 
 [program:php-fpm]
@@ -125,18 +98,27 @@ stdout_logfile=/dev/stdout
 stdout_logfile_maxbytes=0
 stderr_logfile=/dev/stderr
 stderr_logfile_maxbytes=0
-autorestart=false
-startretries=0
+autorestart=true
+priority=1
 
 [program:nginx]
-command=nginx -g 'daemon off;'
+command=nginx -g "daemon off;"
 stdout_logfile=/dev/stdout
 stdout_logfile_maxbytes=0
 stderr_logfile=/dev/stderr
 stderr_logfile_maxbytes=0
-autorestart=false
-startretries=0
+autorestart=true
+priority=2
 EOF
+
+# Set proper permissions
+RUN chown -R www-data:www-data /var/www/html && \
+    chmod -R 755 /var/www/html
+
+# Health check script
+RUN echo '#!/bin/sh' > /health-check.sh && \
+    echo 'curl -f http://localhost/ || exit 1' >> /health-check.sh && \
+    chmod +x /health-check.sh
 
 # Expose port
 EXPOSE 80
