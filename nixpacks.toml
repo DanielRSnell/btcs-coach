@@ -1,0 +1,14 @@
+[phases]
+# Skip all npm/node build phases - use committed assets
+[phases.build]
+cmds = []
+
+[phases.setup]
+cmds = [
+  "mkdir -p database",
+  "touch database/database.sqlite"
+]
+
+[variables]
+# Use committed build assets
+NIXPACKS_NO_INSTALL_NODE = "true"

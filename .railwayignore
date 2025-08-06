@@ -1,0 +1,12 @@
+# Don't ignore built assets - we want to use the local build
+# !public/build/
+
+# Only ignore local development files
+.env
+.env.local
+.env.backup
+*.log
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
