@@ -75,61 +75,63 @@ class ProductionDataSeeder extends Seeder
                 'pi_assessor_name' => 'H.G. Fenton HR Team',
                 'pi_notes' => 'A Persuader is a risk-taking, socially poised and motivating team builder.',
                 'pi_profile' => [
-                    'name' => 'Victor Morales',
-                    'basic_info' => [
-                        'assessment_date' => '2021-08-04',
-                        'report_date' => '2021-09-03',
-                        'profile_type' => 'Persuader',
-                        'profile_description' => 'A Persuader is a risk-taking, socially poised and motivating team builder.'
-                    ],
-                    'behavioral_traits' => [
-                        'strongest_behaviors' => [
-                            'Proactively connects quickly to others; open and sharing. Builds and leverages relationships to get work done.',
-                            'Comfortably fluent and fast talk, in volume. Enthusiastically persuades and motivates others by considering their point of view and adjusting delivery.',
-                            'Collaborative; usually works with and through others. Intuitive understanding of team cohesion, dynamics, and interpersonal relations.',
-                            'Works at a faster-than-average pace, producing results in general accordance with schedules and \'the book.\'',
-                            'Detail-oriented; typically makes and follows a plan to keep track of things and usually follows up to ensure completion.',
-                            'Focused on operational efficiencies: thinks about what needs to be done and how it can be done quickly without losing quality. Impatient with routines.'
+                    'profile' => [
+                        'name' => 'Victor Morales',
+                        'basic_info' => [
+                            'assessment_date' => '2021-08-04',
+                            'report_date' => '2021-09-03',
+                            'profile_type' => 'Persuader',
+                            'profile_description' => 'A Persuader is a risk-taking, socially poised and motivating team builder.'
                         ],
-                        'summary' => 'Victor is a congenial, friendly communicator, capable of projecting enthusiasm and warmth, and motivating others. Works at a fast pace with an emphasis on getting results by working cooperatively with and through people. Understands people well and uses that insight to motivate and persuade effectively. Functions dependably within established plans and policies, and consults trusted advisors when handling decisions outside of established norms. Takes pride in bringing out the best in others and contributing to business success.'
-                    ],
-                    'management_strategies' => [
-                        'optimal_conditions' => [
-                            'Clear definition of responsibility, authority, and organizational relationships',
-                            'Specific training in the job',
-                            'Opportunities for involvement, interaction, and communication with people as a major aspect of the work',
-                            'Assurance of support and guidance of management, trusted advisors, or team during periods of change or new developments',
-                            'Social and status recognition as rewards for achievement and demonstration of team spirit'
+                        'behavioral_traits' => [
+                            'strongest_behaviors' => [
+                                'Proactively connects quickly to others; open and sharing. Builds and leverages relationships to get work done.',
+                                'Comfortably fluent and fast talk, in volume. Enthusiastically persuades and motivates others by considering their point of view and adjusting delivery.',
+                                'Collaborative; usually works with and through others. Intuitive understanding of team cohesion, dynamics, and interpersonal relations.',
+                                'Works at a faster-than-average pace, producing results in general accordance with schedules and \'the book.\'',
+                                'Detail-oriented; typically makes and follows a plan to keep track of things and usually follows up to ensure completion.',
+                                'Focused on operational efficiencies: thinks about what needs to be done and how it can be done quickly without losing quality. Impatient with routines.'
+                            ],
+                            'summary' => 'Victor is a congenial, friendly communicator, capable of projecting enthusiasm and warmth, and motivating others. Works at a fast pace with an emphasis on getting results by working cooperatively with and through people. Understands people well and uses that insight to motivate and persuade effectively. Functions dependably within established plans and policies, and consults trusted advisors when handling decisions outside of established norms. Takes pride in bringing out the best in others and contributing to business success.'
                         ],
-                        'avoid_conditions' => [
-                            'Highly repetitive, routine work with minimal social interaction',
-                            'Lack of clarity in responsibilities or organizational support'
+                        'management_strategies' => [
+                            'optimal_conditions' => [
+                                'Clear definition of responsibility, authority, and organizational relationships',
+                                'Specific training in the job',
+                                'Opportunities for involvement, interaction, and communication with people as a major aspect of the work',
+                                'Assurance of support and guidance of management, trusted advisors, or team during periods of change or new developments',
+                                'Social and status recognition as rewards for achievement and demonstration of team spirit'
+                            ],
+                            'avoid_conditions' => [
+                                'Highly repetitive, routine work with minimal social interaction',
+                                'Lack of clarity in responsibilities or organizational support'
+                            ]
+                        ],
+                        'work_preferences' => [
+                            'pace' => 'Faster-than-average pace; prefers active, dynamic environments',
+                            'decision_making' => 'Collaborative approach; seeks input from trusted advisors when outside established policies',
+                            'communication_style' => 'Warm, persuasive, and enthusiastic communicator',
+                            'focus' => 'Team-oriented with emphasis on results through collaboration',
+                            'team_orientation' => 'Highly collaborative; enjoys working with and through others',
+                            'risk_tolerance' => 'Moderate; prefers to mitigate risk by consulting experts when making unusual decisions'
+                        ],
+                        'social_style' => [
+                            'formality' => 'Friendly, approachable, and confident in groups',
+                            'trust_building' => 'Earns trust through openness, collaboration, and delivering results',
+                            'relationship_focus' => 'Strong emphasis on building relationships to drive team and organizational success'
+                        ],
+                        'motivation_drivers' => [
+                            'recognition' => 'High; values social and status recognition as rewards for achievement',
+                            'security' => 'Moderate; values management support during change',
+                            'autonomy' => 'Moderate; comfortable with autonomy when responsibilities are clearly defined',
+                            'advancement' => 'Motivated by opportunities to influence and lead teams',
+                            'collaboration' => 'Strong driver; thrives in team-focused environments'
+                        ],
+                        'technical_orientation' => [
+                            'detail_orientation' => 'Moderate; follows plans and tracks details but becomes less effective if work is overly repetitive',
+                            'innovation_tolerance' => 'Moderate; willing to adapt methods to improve efficiency while respecting established policies',
+                            'process_adherence' => 'High; operates well within established frameworks and company policies'
                         ]
-                    ],
-                    'work_preferences' => [
-                        'pace' => 'Faster-than-average pace; prefers active, dynamic environments',
-                        'decision_making' => 'Collaborative approach; seeks input from trusted advisors when outside established policies',
-                        'communication_style' => 'Warm, persuasive, and enthusiastic communicator',
-                        'focus' => 'Team-oriented with emphasis on results through collaboration',
-                        'team_orientation' => 'Highly collaborative; enjoys working with and through others',
-                        'risk_tolerance' => 'Moderate; prefers to mitigate risk by consulting experts when making unusual decisions'
-                    ],
-                    'social_style' => [
-                        'formality' => 'Friendly, approachable, and confident in groups',
-                        'trust_building' => 'Earns trust through openness, collaboration, and delivering results',
-                        'relationship_focus' => 'Strong emphasis on building relationships to drive team and organizational success'
-                    ],
-                    'motivation_drivers' => [
-                        'recognition' => 'High; values social and status recognition as rewards for achievement',
-                        'security' => 'Moderate; values management support during change',
-                        'autonomy' => 'Moderate; comfortable with autonomy when responsibilities are clearly defined',
-                        'advancement' => 'Motivated by opportunities to influence and lead teams',
-                        'collaboration' => 'Strong driver; thrives in team-focused environments'
-                    ],
-                    'technical_orientation' => [
-                        'detail_orientation' => 'Moderate; follows plans and tracks details but becomes less effective if work is overly repetitive',
-                        'innovation_tolerance' => 'Moderate; willing to adapt methods to improve efficiency while respecting established policies',
-                        'process_adherence' => 'High; operates well within established frameworks and company policies'
                     ]
                 ],
             ],
@@ -150,62 +152,64 @@ class ProductionDataSeeder extends Seeder
                 'pi_assessor_name' => 'H.G. Fenton HR Team',
                 'pi_notes' => 'A Captain is a problem solver who likes change and innovation while controlling the big picture.',
                 'pi_profile' => [
-                    'name' => 'Matt Putman',
-                    'basic_info' => [
-                        'assessment_date' => '2016-10-21',
-                        'report_date' => '2022-08-04',
-                        'profile_type' => 'Captain',
-                        'profile_description' => 'A Captain is a problem solver who likes change and innovation while controlling the big picture.'
-                    ],
-                    'behavioral_traits' => [
-                        'strongest_behaviors' => [
-                            'Proactivity, assertiveness, and sense of urgency in driving to reach personal goals. Openly challenges the world.',
-                            'Independent in putting forth their own ideas, which are often innovative and, if implemented, cause change. Resourcefully works through or around obstacles to accomplish goals; aggressive when challenged.',
-                            'Impatient for results; puts pressure on themself and others for rapid implementation, less productive when doing routine work.',
-                            'Proactively connects quickly to others; open and sharing. Builds and leverages relationships to get work done.',
-                            'Comfortably fluent and fast talker. Enthusiastically persuades and motivates others by considering their point of view and adjusting delivery.',
-                            'Collaborative; usually works with and through others. Intuitive understanding of team cohesion, dynamics, and interpersonal relations.'
+                    'profile' => [
+                        'name' => 'Matt Putman',
+                        'basic_info' => [
+                            'assessment_date' => '2016-10-21',
+                            'report_date' => '2022-08-04',
+                            'profile_type' => 'Captain',
+                            'profile_description' => 'A Captain is a problem solver who likes change and innovation while controlling the big picture.'
                         ],
-                        'summary' => 'Matt is a confident, independent self-starter with competitive drive, initiative, a sense of urgency, and the ability to make decisions and take responsibility for them. Responds quickly to changing conditions, comes up with ideas to address them, and acts decisively. Outgoing, poised, and a lively communicator, Matt prefers fast-paced work, delegates routine details, and focuses follow-up on results rather than process. Makes quick decisions, comfortable acting without complete information, and maintains progress toward goals through adaptive course corrections. Sets high standards for achievement and is driven by ambition and new challenges.'
-                    ],
-                    'management_strategies' => [
-                        'optimal_conditions' => [
-                            'As much independence and flexibility in activities as possible',
-                            'Opportunities to learn and advance',
-                            'Opportunities for expression of, and action on, ideas and initiatives',
-                            'Variety and challenge in responsibilities',
-                            'Opportunities to demonstrate skills, and recognition and reward for doing so',
-                            'Freedom from routines and repetitive details, balanced by accountability for results'
+                        'behavioral_traits' => [
+                            'strongest_behaviors' => [
+                                'Proactivity, assertiveness, and sense of urgency in driving to reach personal goals. Openly challenges the world.',
+                                'Independent in putting forth their own ideas, which are often innovative and, if implemented, cause change. Resourcefully works through or around obstacles to accomplish goals; aggressive when challenged.',
+                                'Impatient for results; puts pressure on themself and others for rapid implementation, less productive when doing routine work.',
+                                'Proactively connects quickly to others; open and sharing. Builds and leverages relationships to get work done.',
+                                'Comfortably fluent and fast talker. Enthusiastically persuades and motivates others by considering their point of view and adjusting delivery.',
+                                'Collaborative; usually works with and through others. Intuitive understanding of team cohesion, dynamics, and interpersonal relations.'
+                            ],
+                            'summary' => 'Matt is a confident, independent self-starter with competitive drive, initiative, a sense of urgency, and the ability to make decisions and take responsibility for them. Responds quickly to changing conditions, comes up with ideas to address them, and acts decisively. Outgoing, poised, and a lively communicator, Matt prefers fast-paced work, delegates routine details, and focuses follow-up on results rather than process. Makes quick decisions, comfortable acting without complete information, and maintains progress toward goals through adaptive course corrections. Sets high standards for achievement and is driven by ambition and new challenges.'
                         ],
-                        'avoid_conditions' => [
-                            'Highly structured, repetitive, or routine work without room for change',
-                            'Micromanagement or lack of autonomy'
+                        'management_strategies' => [
+                            'optimal_conditions' => [
+                                'As much independence and flexibility in activities as possible',
+                                'Opportunities to learn and advance',
+                                'Opportunities for expression of, and action on, ideas and initiatives',
+                                'Variety and challenge in responsibilities',
+                                'Opportunities to demonstrate skills, and recognition and reward for doing so',
+                                'Freedom from routines and repetitive details, balanced by accountability for results'
+                            ],
+                            'avoid_conditions' => [
+                                'Highly structured, repetitive, or routine work without room for change',
+                                'Micromanagement or lack of autonomy'
+                            ]
+                        ],
+                        'work_preferences' => [
+                            'pace' => 'Distinctly faster-than-average pace; thrives in high-energy, dynamic environments',
+                            'decision_making' => 'Quick, confident decisions based on available information; comfortable acting without complete data',
+                            'communication_style' => 'Lively, authoritative, persuasive communicator',
+                            'focus' => 'Big-picture goals with flexibility on methods to achieve them',
+                            'team_orientation' => 'Collaborative with trusted individuals; delegates to capable team members',
+                            'risk_tolerance' => 'High; comfortable taking calculated risks and adapting as needed'
+                        ],
+                        'social_style' => [
+                            'formality' => 'Confident, outgoing, and poised',
+                            'trust_building' => 'Builds trust through decisive leadership and consistent follow-up on results',
+                            'relationship_focus' => 'Values relationships that support achieving results and innovation'
+                        ],
+                        'motivation_drivers' => [
+                            'recognition' => 'High; values recognition for achievements and demonstrated skills',
+                            'security' => 'Moderate; prefers stability in leadership expectations but thrives on change in tasks',
+                            'autonomy' => 'Very high; seeks independence and flexibility',
+                            'advancement' => 'Strong driver; motivated by opportunities for growth and competition',
+                            'collaboration' => 'Moderate; works collaboratively but values decisive action and independence'
+                        ],
+                        'technical_orientation' => [
+                            'detail_orientation' => 'Low to moderate; prefers to delegate details and focus on big-picture outcomes',
+                            'innovation_tolerance' => 'High; actively seeks and implements change and innovative solutions',
+                            'process_adherence' => 'Moderate; adapts processes when necessary to achieve results'
                         ]
-                    ],
-                    'work_preferences' => [
-                        'pace' => 'Distinctly faster-than-average pace; thrives in high-energy, dynamic environments',
-                        'decision_making' => 'Quick, confident decisions based on available information; comfortable acting without complete data',
-                        'communication_style' => 'Lively, authoritative, persuasive communicator',
-                        'focus' => 'Big-picture goals with flexibility on methods to achieve them',
-                        'team_orientation' => 'Collaborative with trusted individuals; delegates to capable team members',
-                        'risk_tolerance' => 'High; comfortable taking calculated risks and adapting as needed'
-                    ],
-                    'social_style' => [
-                        'formality' => 'Confident, outgoing, and poised',
-                        'trust_building' => 'Builds trust through decisive leadership and consistent follow-up on results',
-                        'relationship_focus' => 'Values relationships that support achieving results and innovation'
-                    ],
-                    'motivation_drivers' => [
-                        'recognition' => 'High; values recognition for achievements and demonstrated skills',
-                        'security' => 'Moderate; prefers stability in leadership expectations but thrives on change in tasks',
-                        'autonomy' => 'Very high; seeks independence and flexibility',
-                        'advancement' => 'Strong driver; motivated by opportunities for growth and competition',
-                        'collaboration' => 'Moderate; works collaboratively but values decisive action and independence'
-                    ],
-                    'technical_orientation' => [
-                        'detail_orientation' => 'Low to moderate; prefers to delegate details and focus on big-picture outcomes',
-                        'innovation_tolerance' => 'High; actively seeks and implements change and innovative solutions',
-                        'process_adherence' => 'Moderate; adapts processes when necessary to achieve results'
                     ]
                 ],
             ],
