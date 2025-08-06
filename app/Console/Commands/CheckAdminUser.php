@@ -46,7 +46,7 @@ class CheckAdminUser extends Command
         }
         
         $this->info("Current role: {$adminUser->role}");
-        $this->info("Can access panel: " . ($adminUser->canAccessPanel(null) ? 'YES' : 'NO'));
+        // $this->info("Can access panel: " . ($adminUser->canAccessPanel(null) ? 'YES' : 'NO'));
         $this->info("Is admin: " . ($adminUser->isAdmin() ? 'YES' : 'NO'));
         
         if ($adminUser->role !== 'admin') {
