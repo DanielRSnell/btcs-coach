@@ -15,58 +15,74 @@ class ProductionDataSeeder extends Seeder
 {
     /**
      * Run the database seeds for production deployment
-     * This includes all current modules, users, and action items from development
+     * This replicates the EXACT local database state including passwords
      */
     public function run(): void
     {
-        // Check if admin user already exists
-        $adminUser = User::where('email', 'admin@btcs.com')->first();
-        if ($adminUser) {
-            $this->command->info("Admin user already exists with role: {$adminUser->role}");
-            
-            // Ensure admin has correct role
-            if ($adminUser->role !== 'admin') {
-                $adminUser->update(['role' => 'admin']);
-                $this->command->info('Updated admin user role to admin.');
-            }
-            
-            return;
-        }
+        $this->command->info('Creating complete production data from local database...');
 
-        $this->command->info('Creating production data...');
-
-        // First create PI Behavioral Patterns
+        // First create PI Behavioral Patterns (all 11 patterns from PiBehavioralPatternSeeder)
         $this->seedPiBehavioralPatterns();
         
-        // Create main users
+        // Check if we need to skip user creation (but continue with other data)
+        $adminExists = User::where('email', 'admin@btcs.com')->exists();
+        if ($adminExists) {
+            $this->command->info('Admin user already exists - updating seeder to be idempotent...');
+        }
+        
+        // Create exact users with their actual password hashes from local DB
         $users = [
             [
                 'name' => 'Admin User',
                 'email' => 'admin@btcs.com',
-                'password' => Hash::make('password'),
+                'password' => '$2y$12$iD25foS5hU4yRftLNIEZRee0SnUv7knUtUbTGLv/nLfTZAvBQ3fTK', // password
                 'role' => 'admin',
-                'email_verified_at' => now(),
+                'email_verified_at' => '2025-08-06 03:25:29',
+                'pi_behavioral_pattern_id' => null,
+                'pi_raw_scores' => null,
+                'pi_assessed_at' => null,
+                'pi_assessor_name' => null,
+                'pi_notes' => null,
+                'pi_profile' => null,
             ],
             [
                 'name' => 'John Doe',
                 'email' => 'john@btcs.com',
-                'password' => Hash::make('password'),
+                'password' => '$2y$12$8x7R49wHycdTlwdoivZ7kO6FqW5Om6pvbXgLYazjuIQDsM0ZjcFY2', // password
                 'role' => 'admin',
-                'email_verified_at' => now(),
+                'email_verified_at' => '2025-08-06 03:25:29',
+                'pi_behavioral_pattern_id' => null,
+                'pi_raw_scores' => null,
+                'pi_assessed_at' => null,
+                'pi_assessor_name' => null,
+                'pi_notes' => null,
+                'pi_profile' => null,
             ],
             [
                 'name' => 'Victor Morales',
                 'email' => 'victor@umbral.ai',
-                'password' => Hash::make('password'),
+                'password' => '$2y$12$SFqpLKu0YmbWflqquf0kWunfRpofQlQt/02hyp5q/sPNrnf4./DQy', // password
                 'role' => 'member',
-                'email_verified_at' => now(),
+                'email_verified_at' => '2025-08-06 03:25:29',
+                'pi_behavioral_pattern_id' => null,
+                'pi_raw_scores' => null,
+                'pi_assessed_at' => null,
+                'pi_assessor_name' => null,
+                'pi_notes' => null,
+                'pi_profile' => null,
             ],
             [
                 'name' => 'Matt Putman',
                 'email' => 'matt.putman@example.com',
-                'password' => Hash::make('password'),
+                'password' => '$2y$12$CrcaxuQD1OfYGfgVRfjBDOzLM8STbOjMrJTKUL60Ibvm3gSp0K1h.', // password
                 'role' => 'member',
-                'email_verified_at' => now(),
+                'email_verified_at' => '2025-08-06 03:25:30',
+                'pi_behavioral_pattern_id' => null,
+                'pi_raw_scores' => null,
+                'pi_assessed_at' => null,
+                'pi_assessor_name' => null,
+                'pi_notes' => null,
+                'pi_profile' => null,
             ],
         ];
 
@@ -181,18 +197,18 @@ class ProductionDataSeeder extends Seeder
             );
         }
 
-        // Assign modules to users (only if not already assigned)
+        // Assign modules to John Doe exactly as in local DB
         $johnUser = $createdUsers['john@btcs.com'];
         foreach ($createdModules as $module) {
             if (!$johnUser->accessibleModules()->where('module_id', $module->id)->exists()) {
                 $johnUser->accessibleModules()->attach($module->id, [
-                    'assigned_at' => now(),
-                    'progress_data' => json_encode(['completion_percentage' => rand(0, 100)]),
+                    'assigned_at' => null, // Matches local DB
+                    'progress_data' => null, // Matches local DB  
                 ]);
             }
         }
 
-        // Create action items matching current development data
+        // Create action items exactly as they exist in local DB
         $actionItems = [
             [
                 'user_id' => $johnUser->id,
@@ -201,9 +217,11 @@ class ProductionDataSeeder extends Seeder
                 'description' => 'Focus on demonstrating active listening skills during team meetings and one-on-ones.',
                 'priority' => 'high',
                 'status' => 'completed',
-                'due_date' => now()->addDays(7),
+                'due_date' => '2025-08-13 00:00:00',
                 'context' => 'Based on coaching session feedback about communication improvements',
-                'completed_at' => now()->subDays(2),
+                'completed_at' => '2025-08-04 03:25:30',
+                'created_at' => '2025-08-06 03:25:30',
+                'updated_at' => '2025-08-06 03:25:30',
             ],
             [
                 'user_id' => $johnUser->id,
@@ -212,8 +230,11 @@ class ProductionDataSeeder extends Seeder
                 'description' => 'Use data-driven communication approaches when working with team members who have analytical PI profiles.',
                 'priority' => 'medium',
                 'status' => 'pending',
-                'due_date' => now()->addDays(10),
+                'due_date' => '2025-08-16 00:00:00',
                 'context' => 'Identified during PI profile analysis session',
+                'completed_at' => null,
+                'created_at' => '2025-08-06 03:25:30',
+                'updated_at' => '2025-08-06 03:25:30',
             ],
             [
                 'user_id' => $johnUser->id,
@@ -222,8 +243,11 @@ class ProductionDataSeeder extends Seeder
                 'description' => 'Evaluate each team member using the SLII framework to determine their development level for current project tasks.',
                 'priority' => 'high',
                 'status' => 'pending',
-                'due_date' => now()->addDays(5),
+                'due_date' => '2025-08-11 00:00:00',
                 'context' => 'Preparation for upcoming project milestone review',
+                'completed_at' => null,
+                'created_at' => '2025-08-06 03:25:30',
+                'updated_at' => '2025-08-06 03:25:30',
             ],
             [
                 'user_id' => $johnUser->id,
@@ -232,8 +256,11 @@ class ProductionDataSeeder extends Seeder
                 'description' => 'Review and update personal leadership development goals for the quarter.',
                 'priority' => 'medium',
                 'status' => 'pending',
-                'due_date' => now()->addWeeks(2),
+                'due_date' => '2025-08-20 00:00:00',
                 'context' => 'Quarterly development planning session',
+                'completed_at' => null,
+                'created_at' => '2025-08-06 03:25:30',
+                'updated_at' => '2025-08-06 03:25:30',
             ],
             [
                 'user_id' => $johnUser->id,
@@ -242,8 +269,11 @@ class ProductionDataSeeder extends Seeder
                 'description' => 'Arrange follow-up PI assessment session to track development progress.',
                 'priority' => 'low',
                 'status' => 'pending',
-                'due_date' => now()->addMonth(),
+                'due_date' => '2025-09-06 00:00:00',
                 'context' => '6-month follow-up recommendation from initial assessment',
+                'completed_at' => null,
+                'created_at' => '2025-08-06 03:25:30',
+                'updated_at' => '2025-08-06 03:25:30',
             ],
             [
                 'user_id' => $johnUser->id,
@@ -252,9 +282,11 @@ class ProductionDataSeeder extends Seeder
                 'description' => 'Finish the comprehensive Predictive Index behavioral assessment.',
                 'priority' => 'high',
                 'status' => 'completed',
-                'due_date' => now()->subWeek(),
+                'due_date' => '2025-07-30 00:00:00',
                 'context' => 'Required for personalized coaching approach',
-                'completed_at' => now()->subWeek(),
+                'completed_at' => '2025-07-30 03:25:30',
+                'created_at' => '2025-08-06 03:25:30',
+                'updated_at' => '2025-08-06 03:25:30',
             ],
             [
                 'user_id' => $johnUser->id,
@@ -263,9 +295,11 @@ class ProductionDataSeeder extends Seeder
                 'description' => 'Set up individual meetings with each team member this week.',
                 'priority' => 'high',
                 'status' => 'completed',
-                'due_date' => now()->addDays(3),
+                'due_date' => '2025-08-09 00:00:00',
                 'context' => 'Follow-up from coaching session on team management',
-                'completed_at' => now()->subDays(1),
+                'completed_at' => '2025-08-05 03:25:30',
+                'created_at' => '2025-08-06 03:25:30',
+                'updated_at' => '2025-08-06 03:25:30',
             ],
             [
                 'user_id' => $johnUser->id,
@@ -274,8 +308,11 @@ class ProductionDataSeeder extends Seeder
                 'description' => 'Analyze competitor pricing strategies for Q4 planning.',
                 'priority' => 'medium',
                 'status' => 'in_progress',
-                'due_date' => now()->addWeek(),
+                'due_date' => '2025-08-13 00:00:00',
                 'context' => 'Strategic planning initiative',
+                'completed_at' => null,
+                'created_at' => '2025-08-06 03:25:30',
+                'updated_at' => '2025-08-06 03:25:30',
             ],
             [
                 'user_id' => $johnUser->id,
@@ -284,17 +321,25 @@ class ProductionDataSeeder extends Seeder
                 'description' => 'Revise project documentation to reflect recent changes.',
                 'priority' => 'low',
                 'status' => 'completed',
-                'due_date' => now()->subDays(1),
+                'due_date' => '2025-08-05 00:00:00',
                 'context' => 'Documentation maintenance task',
-                'completed_at' => now()->subDays(2),
+                'completed_at' => '2025-08-04 03:25:30',
+                'created_at' => '2025-08-06 03:25:30',
+                'updated_at' => '2025-08-06 03:25:30',
             ],
         ];
 
         foreach ($actionItems as $itemData) {
-            ActionItem::create($itemData);
+            ActionItem::firstOrCreate(
+                [
+                    'user_id' => $itemData['user_id'],
+                    'title' => $itemData['title']
+                ],
+                $itemData
+            );
         }
 
-        // Create sample achievements
+        // Create achievements exactly as they exist in local DB
         $achievements = [
             [
                 'user_id' => $johnUser->id,
@@ -306,11 +351,14 @@ class ProductionDataSeeder extends Seeder
                 'badge_icon' => 'star',
                 'badge_color' => '#f59e0b',
                 'is_unlocked' => true,
-                'unlocked_at' => now()->subDays(7),
+                'unlocked_at' => '2025-07-30 03:25:30',
                 'progress_percentage' => 100.00,
+                'created_at' => '2025-08-06 03:25:30',
+                'updated_at' => '2025-08-06 03:25:30',
             ],
             [
                 'user_id' => $johnUser->id,
+                'module_id' => null, // Global achievement
                 'title' => 'Task Master',
                 'description' => 'Completed 5 action items successfully.',
                 'type' => 'milestone',
@@ -318,8 +366,10 @@ class ProductionDataSeeder extends Seeder
                 'badge_icon' => 'target',
                 'badge_color' => '#10b981',
                 'is_unlocked' => true,
-                'unlocked_at' => now()->subDays(2),
+                'unlocked_at' => '2025-08-04 03:25:30',
                 'progress_percentage' => 100.00,
+                'created_at' => '2025-08-06 03:25:30',
+                'updated_at' => '2025-08-06 03:25:30',
             ],
             [
                 'user_id' => $johnUser->id,
@@ -331,12 +381,21 @@ class ProductionDataSeeder extends Seeder
                 'badge_icon' => 'trophy',
                 'badge_color' => '#3b82f6',
                 'is_unlocked' => false,
+                'unlocked_at' => null,
                 'progress_percentage' => 75.00,
+                'created_at' => '2025-08-06 03:25:30',
+                'updated_at' => '2025-08-06 03:25:30',
             ],
         ];
 
         foreach ($achievements as $achievementData) {
-            Achievement::create($achievementData);
+            Achievement::firstOrCreate(
+                [
+                    'user_id' => $achievementData['user_id'],
+                    'title' => $achievementData['title']
+                ],
+                $achievementData
+            );
         }
 
         $this->command->info('Production data seeding completed successfully!');
@@ -348,8 +407,9 @@ class ProductionDataSeeder extends Seeder
 
     private function seedPiBehavioralPatterns()
     {
-        $this->command->info('Creating PI Behavioral Patterns...');
+        $this->command->info('Creating all 11 PI Behavioral Patterns...');
         
+        // All 11 patterns from PiBehavioralPatternSeeder.php
         $patterns = [
             [
                 'name' => 'Analyzer',
@@ -392,6 +452,86 @@ class ProductionDataSeeder extends Seeder
                 'compatible_patterns' => ['ANALYZER', 'SPECIALIST', 'VENTURER']
             ],
             [
+                'name' => 'Venturer',
+                'code' => 'VENTURER',
+                'description' => 'Innovative, risk-taking, and entrepreneurial. They thrive on variety, change, and new challenges.',
+                'behavioral_drives' => [
+                    'dominance' => 85,
+                    'extraversion' => 85,
+                    'patience' => 25,
+                    'formality' => 25
+                ],
+                'strengths' => 'Innovative, adaptable, risk-taking, entrepreneurial, energetic, inspiring',
+                'challenges' => 'May lack follow-through, impatient with details, can be impulsive, may neglect routine tasks',
+                'work_style' => 'Variety, new challenges, minimal routine, creative freedom, fast-paced environment',
+                'communication_style' => 'Enthusiastic, big-picture focused, verbal communication, inspiring, conceptual',
+                'leadership_style' => 'Visionary, inspiring, delegates details, focuses on innovation, change-oriented',
+                'ideal_work_environment' => 'Dynamic, flexible, variety in tasks, opportunities for innovation, minimal bureaucracy',
+                'motivation_factors' => 'New challenges, innovation, recognition, variety, growth opportunities',
+                'stress_factors' => 'Routine tasks, micromanagement, detailed procedures, slow pace, bureaucracy',
+                'compatible_patterns' => ['PERSUADER', 'CAPTAIN', 'CONTROLLER']
+            ],
+            [
+                'name' => 'Captain',
+                'code' => 'CAPTAIN',
+                'description' => 'Natural leaders who are both results-oriented and people-focused. They excel at building teams and driving results.',
+                'behavioral_drives' => [
+                    'dominance' => 85,
+                    'extraversion' => 75,
+                    'patience' => 50,
+                    'formality' => 50
+                ],
+                'strengths' => 'Natural leadership, team building, results-oriented, strategic thinking, motivational',
+                'challenges' => 'May be impatient, can overwhelm others, may take on too much, resistance to being managed',
+                'work_style' => 'Leading teams, strategic focus, variety in tasks, goal-oriented, collaborative leadership',
+                'communication_style' => 'Direct but diplomatic, motivational, verbal communication, team-focused, strategic',
+                'leadership_style' => 'Transformational, team-oriented, results-focused, strategic, empowering',
+                'ideal_work_environment' => 'Team-based, strategic role, variety, leadership opportunities, goal-focused culture',
+                'motivation_factors' => 'Leadership opportunities, team success, strategic challenges, recognition, growth',
+                'stress_factors' => 'Micromanagement, individual contributor role, bureaucracy, lack of influence',
+                'compatible_patterns' => ['VENTURER', 'PERSUADER', 'PROMOTER']
+            ],
+            [
+                'name' => 'Persuader',
+                'code' => 'PERSUADER',
+                'description' => 'Influential, optimistic, and people-focused. They excel at building relationships and influencing others.',
+                'behavioral_drives' => [
+                    'dominance' => 75,
+                    'extraversion' => 85,
+                    'patience' => 50,
+                    'formality' => 25
+                ],
+                'strengths' => 'Influential, optimistic, relationship-building, persuasive, energetic, inspiring',
+                'challenges' => 'May over-commit, can be disorganized, may neglect details, impatient with process',
+                'work_style' => 'People interaction, variety, influence opportunities, flexible schedule, team collaboration',
+                'communication_style' => 'Enthusiastic, persuasive, verbal, relationship-focused, optimistic',
+                'leadership_style' => 'Inspirational, people-focused, motivational, collaborative, influence-based',
+                'ideal_work_environment' => 'People-oriented, flexible, collaborative, variety, minimal routine',
+                'motivation_factors' => 'People interaction, influence, recognition, variety, positive relationships',
+                'stress_factors' => 'Isolation, detailed tasks, rigid structure, negative environment, conflict',
+                'compatible_patterns' => ['VENTURER', 'CAPTAIN', 'PROMOTER']
+            ],
+            [
+                'name' => 'Promoter',
+                'code' => 'PROMOTER',
+                'description' => 'Enthusiastic, optimistic, and socially driven. They excel at promoting ideas and building enthusiasm.',
+                'behavioral_drives' => [
+                    'dominance' => 50,
+                    'extraversion' => 85,
+                    'patience' => 25,
+                    'formality' => 25
+                ],
+                'strengths' => 'Enthusiastic, optimistic, creative, energetic, relationship-building, inspiring',
+                'challenges' => 'May lack follow-through, can be disorganized, impatient with details, may over-commit',
+                'work_style' => 'People interaction, creativity, variety, flexible deadlines, collaborative environment',
+                'communication_style' => 'Enthusiastic, creative, verbal, people-focused, inspiring',
+                'leadership_style' => 'Inspirational, creative, people-focused, motivational, collaborative',
+                'ideal_work_environment' => 'Creative, people-oriented, flexible, variety, positive atmosphere',
+                'motivation_factors' => 'Creativity, people interaction, recognition, variety, positive feedback',
+                'stress_factors' => 'Detailed tasks, isolation, rigid deadlines, negative criticism, routine work',
+                'compatible_patterns' => ['PERSUADER', 'CAPTAIN', 'COLLABORATOR']
+            ],
+            [
                 'name' => 'Collaborator',
                 'code' => 'COLLABORATOR',
                 'description' => 'Team-oriented, supportive, and relationship-focused. They excel at bringing people together and facilitating cooperation.',
@@ -410,6 +550,66 @@ class ProductionDataSeeder extends Seeder
                 'motivation_factors' => 'Team harmony, helping others, relationships, stability, recognition for support',
                 'stress_factors' => 'Conflict, high pressure, individual competition, frequent changes, isolation',
                 'compatible_patterns' => ['PROMOTER', 'GUARDIAN', 'SPECIALIST']
+            ],
+            [
+                'name' => 'Guardian',
+                'code' => 'GUARDIAN',
+                'description' => 'Steady, reliable, and service-oriented. They provide stability and support to their teams and organizations.',
+                'behavioral_drives' => [
+                    'dominance' => 25,
+                    'extraversion' => 50,
+                    'patience' => 85,
+                    'formality' => 75
+                ],
+                'strengths' => 'Reliable, steady, service-oriented, loyal, supportive, consistent',
+                'challenges' => 'May resist change, can be overly cautious, may not assert own needs, slow to make decisions',
+                'work_style' => 'Stable environment, clear procedures, supportive role, team-oriented, predictable routine',
+                'communication_style' => 'Steady, supportive, good listener, diplomatic, relationship-focused',
+                'leadership_style' => 'Supportive, steady, service-oriented, consensus-building, relationship-focused',
+                'ideal_work_environment' => 'Stable, supportive, team-oriented, clear procedures, positive culture',
+                'motivation_factors' => 'Helping others, stability, team harmony, recognition for service, clear expectations',
+                'stress_factors' => 'Frequent changes, conflict, high pressure, unclear expectations, isolation',
+                'compatible_patterns' => ['COLLABORATOR', 'SPECIALIST', 'CRAFTSMAN']
+            ],
+            [
+                'name' => 'Specialist',
+                'code' => 'SPECIALIST',
+                'description' => 'Expert-focused, thorough, and quality-oriented. They excel in their area of expertise and prefer depth over breadth.',
+                'behavioral_drives' => [
+                    'dominance' => 50,
+                    'extraversion' => 25,
+                    'patience' => 75,
+                    'formality' => 85
+                ],
+                'strengths' => 'Subject matter expertise, quality-focused, thorough, analytical, reliable, precise',
+                'challenges' => 'May be too focused on details, resistance to change, may not see big picture, perfectionism',
+                'work_style' => 'Expertise-based work, quality-focused, minimal interruptions, clear standards, depth over breadth',
+                'communication_style' => 'Technical, detailed, expert-focused, prefers written communication, precise',
+                'leadership_style' => 'Expert leadership, quality-focused, methodical, consultative, standards-oriented',
+                'ideal_work_environment' => 'Expertise-focused, quality-oriented, minimal distractions, clear standards, stable',
+                'motivation_factors' => 'Expertise recognition, quality work, learning, clear standards, professional development',
+                'stress_factors' => 'Tight deadlines, frequent interruptions, poor quality standards, frequent changes',
+                'compatible_patterns' => ['ANALYZER', 'CONTROLLER', 'GUARDIAN']
+            ],
+            [
+                'name' => 'Craftsman',
+                'code' => 'CRAFTSMAN',
+                'description' => 'Detail-oriented, quality-focused, and methodical. They take pride in producing high-quality work.',
+                'behavioral_drives' => [
+                    'dominance' => 25,
+                    'extraversion' => 25,
+                    'patience' => 85,
+                    'formality' => 85
+                ],
+                'strengths' => 'Quality-focused, detail-oriented, methodical, reliable, thorough, careful',
+                'challenges' => 'May be slow to complete tasks, perfectionism, resistance to change, may miss deadlines',
+                'work_style' => 'Quality-focused, methodical approach, minimal pressure, clear standards, stable environment',
+                'communication_style' => 'Precise, detailed, prefers written communication, methodical, quality-focused',
+                'leadership_style' => 'Lead by example, quality-focused, methodical, standards-oriented, careful',
+                'ideal_work_environment' => 'Quality-oriented, stable, minimal pressure, clear standards, organized',
+                'motivation_factors' => 'Quality recognition, craftsmanship, clear standards, stability, expertise development',
+                'stress_factors' => 'Tight deadlines, pressure for speed, poor quality standards, frequent changes',
+                'compatible_patterns' => ['ANALYZER', 'GUARDIAN', 'SPECIALIST']
             ]
         ];
 
@@ -420,6 +620,6 @@ class ProductionDataSeeder extends Seeder
             );
         }
         
-        $this->command->info('PI Behavioral Patterns created successfully.');
+        $this->command->info('All 11 PI Behavioral Patterns created successfully.');
     }
 }
