@@ -18,6 +18,12 @@ class ProductionDataSeeder extends Seeder
      */
     public function run(): void
     {
+        // Skip seeding if data already exists
+        if (User::where('email', 'admin@btcs.com')->exists()) {
+            $this->command->info('Production data already exists, skipping seeder.');
+            return;
+        }
+
         // Create main users
         $users = [
             [
@@ -52,7 +58,10 @@ class ProductionDataSeeder extends Seeder
 
         $createdUsers = [];
         foreach ($users as $userData) {
-            $createdUsers[$userData['email']] = User::create($userData);
+            $createdUsers[$userData['email']] = User::firstOrCreate(
+                ['email' => $userData['email']],
+                $userData
+            );
         }
 
         // Create all current modules
@@ -152,16 +161,21 @@ class ProductionDataSeeder extends Seeder
 
         $createdModules = [];
         foreach ($modules as $moduleData) {
-            $createdModules[$moduleData['slug']] = Module::create($moduleData);
+            $createdModules[$moduleData['slug']] = Module::firstOrCreate(
+                ['slug' => $moduleData['slug']],
+                $moduleData
+            );
         }
 
-        // Assign modules to users
+        // Assign modules to users (only if not already assigned)
         $johnUser = $createdUsers['john@btcs.com'];
         foreach ($createdModules as $module) {
-            $johnUser->accessibleModules()->attach($module->id, [
-                'assigned_at' => now(),
-                'progress_data' => json_encode(['completion_percentage' => rand(0, 100)]),
-            ]);
+            if (!$johnUser->accessibleModules()->where('module_id', $module->id)->exists()) {
+                $johnUser->accessibleModules()->attach($module->id, [
+                    'assigned_at' => now(),
+                    'progress_data' => json_encode(['completion_percentage' => rand(0, 100)]),
+                ]);
+            }
         }
 
         // Create action items matching current development data
