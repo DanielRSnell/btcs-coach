@@ -15,6 +15,7 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
+        // Dashboard data for authenticated user
         $data = [
             'user' => $user->load('actionItems'),
             'stats' => $this->getUserStats($user),
