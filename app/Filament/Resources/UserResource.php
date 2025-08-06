@@ -84,31 +84,42 @@ class UserResource extends Resource
                     ->schema([
                         Forms\Components\Fieldset::make('Basic Information')
                             ->schema([
-                                Forms\Components\DatePicker::make('pi_profile.basic_info.assessment_date')
+                                Forms\Components\DatePicker::make('pi_profile.profile.basic_info.assessment_date')
                                     ->label('Assessment Date'),
-                                Forms\Components\DatePicker::make('pi_profile.basic_info.report_date')
+                                Forms\Components\DatePicker::make('pi_profile.profile.basic_info.report_date')
                                     ->label('Report Date'),
-                                Forms\Components\TextInput::make('pi_profile.basic_info.profile_type')
+                                Forms\Components\TextInput::make('pi_profile.profile.basic_info.profile_type')
                                     ->label('Profile Type')
                                     ->maxLength(255),
-                                Forms\Components\Textarea::make('pi_profile.basic_info.profile_description')
+                                Forms\Components\Textarea::make('pi_profile.profile.basic_info.profile_description')
                                     ->label('Profile Description')
                                     ->rows(3),
                             ])->columns(2),
 
                         Forms\Components\Fieldset::make('Behavioral Traits')
                             ->schema([
-                                Forms\Components\Repeater::make('pi_profile.behavioral_traits.strongest_behaviors')
+                                Forms\Components\Repeater::make('pi_profile.profile.behavioral_traits.strongest_behaviors')
                                     ->label('Strongest Behaviors')
                                     ->schema([
-                                        Forms\Components\TextInput::make('behavior')
+                                        Forms\Components\Textarea::make('behavior')
                                             ->label('Behavior Statement')
+                                            ->rows(2)
                                             ->required(),
                                     ])
                                     ->addActionLabel('Add Behavior')
                                     ->collapsible()
-                                    ->itemLabel(fn (array $state): ?string => $state['behavior'] ?? null),
-                                Forms\Components\Textarea::make('pi_profile.behavioral_traits.summary')
+                                    ->itemLabel(fn (array $state): ?string => $state['behavior'] ?? null)
+                                    ->formatStateUsing(function ($state) {
+                                        if (!$state) return [];
+                                        // Transform array of strings to array of objects for repeater
+                                        return collect($state)->map(fn($item) => ['behavior' => $item])->toArray();
+                                    })
+                                    ->dehydrateStateUsing(function ($state) {
+                                        if (!$state) return [];
+                                        // Transform array of objects back to array of strings for storage
+                                        return collect($state)->pluck('behavior')->toArray();
+                                    }),
+                                Forms\Components\Textarea::make('pi_profile.profile.behavioral_traits.summary')
                                     ->label('Summary')
                                     ->rows(4)
                                     ->columnSpanFull(),
@@ -116,75 +127,93 @@ class UserResource extends Resource
 
                         Forms\Components\Fieldset::make('Management Strategies')
                             ->schema([
-                                Forms\Components\Repeater::make('pi_profile.management_strategies.optimal_conditions')
+                                Forms\Components\Repeater::make('pi_profile.profile.management_strategies.optimal_conditions')
                                     ->label('Optimal Conditions')
                                     ->schema([
-                                        Forms\Components\TextInput::make('condition')
+                                        Forms\Components\Textarea::make('condition')
                                             ->label('Condition')
+                                            ->rows(2)
                                             ->required(),
                                     ])
                                     ->addActionLabel('Add Condition')
                                     ->collapsible()
-                                    ->itemLabel(fn (array $state): ?string => $state['condition'] ?? null),
-                                Forms\Components\Repeater::make('pi_profile.management_strategies.avoid_conditions')
+                                    ->itemLabel(fn (array $state): ?string => $state['condition'] ?? null)
+                                    ->formatStateUsing(function ($state) {
+                                        if (!$state) return [];
+                                        return collect($state)->map(fn($item) => ['condition' => $item])->toArray();
+                                    })
+                                    ->dehydrateStateUsing(function ($state) {
+                                        if (!$state) return [];
+                                        return collect($state)->pluck('condition')->toArray();
+                                    }),
+                                Forms\Components\Repeater::make('pi_profile.profile.management_strategies.avoid_conditions')
                                     ->label('Conditions to Avoid')
                                     ->schema([
-                                        Forms\Components\TextInput::make('condition')
+                                        Forms\Components\Textarea::make('condition')
                                             ->label('Condition to Avoid')
+                                            ->rows(2)
                                             ->required(),
                                     ])
                                     ->addActionLabel('Add Condition to Avoid')
                                     ->collapsible()
-                                    ->itemLabel(fn (array $state): ?string => $state['condition'] ?? null),
+                                    ->itemLabel(fn (array $state): ?string => $state['condition'] ?? null)
+                                    ->formatStateUsing(function ($state) {
+                                        if (!$state) return [];
+                                        return collect($state)->map(fn($item) => ['condition' => $item])->toArray();
+                                    })
+                                    ->dehydrateStateUsing(function ($state) {
+                                        if (!$state) return [];
+                                        return collect($state)->pluck('condition')->toArray();
+                                    }),
                             ]),
 
                         Forms\Components\Fieldset::make('Work Preferences')
                             ->schema([
-                                Forms\Components\TextInput::make('pi_profile.work_preferences.pace')
+                                Forms\Components\TextInput::make('pi_profile.profile.work_preferences.pace')
                                     ->label('Pace'),
-                                Forms\Components\TextInput::make('pi_profile.work_preferences.decision_making')
+                                Forms\Components\TextInput::make('pi_profile.profile.work_preferences.decision_making')
                                     ->label('Decision Making'),
-                                Forms\Components\TextInput::make('pi_profile.work_preferences.communication_style')
+                                Forms\Components\TextInput::make('pi_profile.profile.work_preferences.communication_style')
                                     ->label('Communication Style'),
-                                Forms\Components\TextInput::make('pi_profile.work_preferences.focus')
+                                Forms\Components\TextInput::make('pi_profile.profile.work_preferences.focus')
                                     ->label('Focus'),
-                                Forms\Components\TextInput::make('pi_profile.work_preferences.team_orientation')
+                                Forms\Components\TextInput::make('pi_profile.profile.work_preferences.team_orientation')
                                     ->label('Team Orientation'),
-                                Forms\Components\TextInput::make('pi_profile.work_preferences.risk_tolerance')
+                                Forms\Components\TextInput::make('pi_profile.profile.work_preferences.risk_tolerance')
                                     ->label('Risk Tolerance'),
                             ])->columns(2),
 
                         Forms\Components\Fieldset::make('Social Style')
                             ->schema([
-                                Forms\Components\TextInput::make('pi_profile.social_style.formality')
+                                Forms\Components\TextInput::make('pi_profile.profile.social_style.formality')
                                     ->label('Formality'),
-                                Forms\Components\TextInput::make('pi_profile.social_style.trust_building')
+                                Forms\Components\TextInput::make('pi_profile.profile.social_style.trust_building')
                                     ->label('Trust Building'),
-                                Forms\Components\TextInput::make('pi_profile.social_style.relationship_focus')
+                                Forms\Components\TextInput::make('pi_profile.profile.social_style.relationship_focus')
                                     ->label('Relationship Focus'),
                             ])->columns(2),
 
                         Forms\Components\Fieldset::make('Motivation Drivers')
                             ->schema([
-                                Forms\Components\TextInput::make('pi_profile.motivation_drivers.recognition')
+                                Forms\Components\TextInput::make('pi_profile.profile.motivation_drivers.recognition')
                                     ->label('Recognition'),
-                                Forms\Components\TextInput::make('pi_profile.motivation_drivers.security')
+                                Forms\Components\TextInput::make('pi_profile.profile.motivation_drivers.security')
                                     ->label('Security'),
-                                Forms\Components\TextInput::make('pi_profile.motivation_drivers.autonomy')
+                                Forms\Components\TextInput::make('pi_profile.profile.motivation_drivers.autonomy')
                                     ->label('Autonomy'),
-                                Forms\Components\TextInput::make('pi_profile.motivation_drivers.advancement')
+                                Forms\Components\TextInput::make('pi_profile.profile.motivation_drivers.advancement')
                                     ->label('Advancement'),
-                                Forms\Components\TextInput::make('pi_profile.motivation_drivers.collaboration')
+                                Forms\Components\TextInput::make('pi_profile.profile.motivation_drivers.collaboration')
                                     ->label('Collaboration'),
                             ])->columns(2),
 
                         Forms\Components\Fieldset::make('Technical Orientation')
                             ->schema([
-                                Forms\Components\TextInput::make('pi_profile.technical_orientation.detail_orientation')
+                                Forms\Components\TextInput::make('pi_profile.profile.technical_orientation.detail_orientation')
                                     ->label('Detail Orientation'),
-                                Forms\Components\TextInput::make('pi_profile.technical_orientation.innovation_tolerance')
+                                Forms\Components\TextInput::make('pi_profile.profile.technical_orientation.innovation_tolerance')
                                     ->label('Innovation Tolerance'),
-                                Forms\Components\TextInput::make('pi_profile.technical_orientation.process_adherence')
+                                Forms\Components\TextInput::make('pi_profile.profile.technical_orientation.process_adherence')
                                     ->label('Process Adherence'),
                             ])->columns(2),
                     ])
