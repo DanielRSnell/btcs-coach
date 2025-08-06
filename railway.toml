@@ -3,7 +3,3 @@ builder = "nixpacks"
 
 [deploy]
 startCommand = "mkdir -p database && touch database/database.sqlite && php artisan config:clear && php artisan cache:clear && php artisan view:clear && php artisan route:clear && php artisan migrate --force && php artisan db:seed --class=ProductionDataSeeder --force && php artisan storage:link && php artisan serve --host=0.0.0.0 --port=$PORT"
-
-[variables]
-# Skip npm build - use committed assets
-NIXPACKS_NO_BUILD_ASSETS = "1"
