@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Module;
 use App\Models\ActionItem;
 use App\Models\Achievement;
+use App\Models\PiBehavioralPattern;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -34,6 +35,9 @@ class ProductionDataSeeder extends Seeder
 
         $this->command->info('Creating production data...');
 
+        // First create PI Behavioral Patterns
+        $this->seedPiBehavioralPatterns();
+        
         // Create main users
         $users = [
             [
@@ -340,5 +344,82 @@ class ProductionDataSeeder extends Seeder
         foreach ($createdUsers as $email => $user) {
             $this->command->info("- {$user->name} ({$email}) - Role: {$user->role}");
         }
+    }
+
+    private function seedPiBehavioralPatterns()
+    {
+        $this->command->info('Creating PI Behavioral Patterns...');
+        
+        $patterns = [
+            [
+                'name' => 'Analyzer',
+                'code' => 'ANALYZER',
+                'description' => 'Analytical, thorough, and systematic. They have a strong drive to gather and analyze information before making decisions.',
+                'behavioral_drives' => [
+                    'dominance' => 25,
+                    'extraversion' => 25,
+                    'patience' => 75,
+                    'formality' => 85
+                ],
+                'strengths' => 'Thorough analysis, attention to detail, systematic approach, quality-focused, methodical problem-solving',
+                'challenges' => 'May over-analyze, slow decision-making, resistance to change, perfectionism, may miss deadlines',
+                'work_style' => 'Prefers structured environments, detailed planning, time to analyze, minimal interruptions, clear expectations',
+                'communication_style' => 'Factual, detailed, written communication preferred, asks clarifying questions, wants complete information',
+                'leadership_style' => 'Lead by expertise, methodical approach, thorough planning, quality-focused, consultative',
+                'ideal_work_environment' => 'Quiet, organized workspace with minimal distractions, access to information and resources, structured processes',
+                'motivation_factors' => 'Quality work, expertise recognition, learning opportunities, detailed information, stable environment',
+                'stress_factors' => 'Tight deadlines, incomplete information, frequent changes, high-pressure situations, interruptions',
+                'compatible_patterns' => ['CONTROLLER', 'SPECIALIST', 'CRAFTSMAN']
+            ],
+            [
+                'name' => 'Controller',
+                'code' => 'CONTROLLER',
+                'description' => 'Independent, results-oriented, and decisive. They prefer to work alone and maintain control over their work.',
+                'behavioral_drives' => [
+                    'dominance' => 85,
+                    'extraversion' => 25,
+                    'patience' => 25,
+                    'formality' => 75
+                ],
+                'strengths' => 'Results-oriented, independent, decisive, goal-focused, efficient, problem-solving',
+                'challenges' => 'May be impatient, can be seen as demanding, may not delegate well, resistance to being controlled',
+                'work_style' => 'Independent work, clear goals, minimal supervision, control over methods, results-focused',
+                'communication_style' => 'Direct, brief, bottom-line focused, prefers written communication, task-oriented',
+                'leadership_style' => 'Authoritative, results-focused, sets high standards, direct communication, goal-oriented',
+                'ideal_work_environment' => 'Private workspace, minimal meetings, control over schedule, clear objectives, results-based evaluation',
+                'motivation_factors' => 'Achievement, independence, control, challenging goals, recognition for results',
+                'stress_factors' => 'Micromanagement, unclear expectations, bureaucracy, forced collaboration, loss of control',
+                'compatible_patterns' => ['ANALYZER', 'SPECIALIST', 'VENTURER']
+            ],
+            [
+                'name' => 'Collaborator',
+                'code' => 'COLLABORATOR',
+                'description' => 'Team-oriented, supportive, and relationship-focused. They excel at bringing people together and facilitating cooperation.',
+                'behavioral_drives' => [
+                    'dominance' => 25,
+                    'extraversion' => 75,
+                    'patience' => 75,
+                    'formality' => 50
+                ],
+                'strengths' => 'Team-oriented, supportive, diplomatic, good listener, facilitating, relationship-building',
+                'challenges' => 'May avoid conflict, can be indecisive, may not assert own needs, resistance to change',
+                'work_style' => 'Team collaboration, supportive role, relationship-focused, consensus-building, stable environment',
+                'communication_style' => 'Diplomatic, supportive, good listener, relationship-focused, collaborative',
+                'leadership_style' => 'Servant leadership, supportive, consensus-building, relationship-focused, team-oriented',
+                'ideal_work_environment' => 'Team-based, supportive culture, stable, collaborative, positive relationships',
+                'motivation_factors' => 'Team harmony, helping others, relationships, stability, recognition for support',
+                'stress_factors' => 'Conflict, high pressure, individual competition, frequent changes, isolation',
+                'compatible_patterns' => ['PROMOTER', 'GUARDIAN', 'SPECIALIST']
+            ]
+        ];
+
+        foreach ($patterns as $patternData) {
+            PiBehavioralPattern::firstOrCreate(
+                ['code' => $patternData['code']],
+                $patternData
+            );
+        }
+        
+        $this->command->info('PI Behavioral Patterns created successfully.');
     }
 }
