@@ -177,6 +177,14 @@ set -e
 
 echo "🚀 Starting BTCS Coach container..."
 
+# Set default port if not provided by Railway
+export PORT=${PORT:-80}
+echo "🌐 Using port: $PORT"
+
+# Update nginx config with the correct port
+sed -i "s/listen 80;/listen $PORT;/" /etc/nginx/http.d/default.conf
+sed -i "s/listen \${PORT:-80};/listen $PORT;/" /etc/nginx/http.d/default.conf
+
 # Ensure directories exist
 mkdir -p /var/www/html/storage/logs
 mkdir -p /var/www/html/bootstrap/cache
