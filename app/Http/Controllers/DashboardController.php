@@ -22,7 +22,7 @@ class DashboardController extends Controller
             'availableModules' => $this->getAvailableModules($user),
         ];
 
-        return Inertia::render('dashboard', $data);
+        return Inertia::render('Dashboard', $data);
     }
 
     private function getUserStats($user)
