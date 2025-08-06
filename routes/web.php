@@ -33,7 +33,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'public_path' => public_path(),
             'build_dir_exists' => is_dir(public_path('build')),
             'assets_dir_exists' => is_dir(public_path('build/assets')),
-            'dashboard_file_exists' => file_exists(public_path('build/assets/Dashboard-uBKmyoxI.js')),
+            'dashboard_file_exists' => file_exists(public_path('build/assets/Dashboard-4_Sq07_K.js')),
             'sample_files' => $manifestExists && $manifestContent ? array_slice(array_keys($manifestContent), 0, 10) : [],
         ]);
     });

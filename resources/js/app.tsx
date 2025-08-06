@@ -9,45 +9,7 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
     title: (title) => title ? `${title} - ${appName}` : appName,
-    resolve: async (name) => {
-        console.log('Inertia resolving:', name);
-        console.log('Environment:', import.meta.env.MODE);
-        const allPages = import.meta.glob('./pages/**/*.tsx');
-        console.log('Available pages:', Object.keys(allPages));
-        
-        try {
-            return await resolvePageComponent(`./pages/${name}.tsx`, allPages);
-        } catch (error) {
-            console.error('Failed to resolve page:', name, error);
-            
-            // Try common variations for Dashboard specifically
-            if (name === 'Dashboard') {
-                console.log('Trying Dashboard fallbacks...');
-                
-                const fallbacks = [
-                    './pages/dashboard.tsx',
-                    './pages/Dashboard.tsx',
-                    'Dashboard',
-                    'dashboard'
-                ];
-                
-                for (const fallback of fallbacks) {
-                    try {
-                        console.log('Trying fallback:', fallback);
-                        if (fallback.includes('./')) {
-                            return await resolvePageComponent(fallback, allPages);
-                        } else {
-                            return await resolvePageComponent(`./pages/${fallback}.tsx`, allPages);
-                        }
-                    } catch (fallbackError) {
-                        console.log('Fallback failed:', fallback, fallbackError);
-                    }
-                }
-            }
-            
-            throw error;
-        }
-    },
+    resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
     setup({ el, App, props }) {
         const root = createRoot(el);
 
