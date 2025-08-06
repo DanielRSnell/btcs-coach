@@ -59,6 +59,8 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
-            ->authGuard('web');
+            ->authGuard('web')
+            ->loginRouteSlug('login')
+            ->profile();
     }
 }
