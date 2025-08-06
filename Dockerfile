@@ -175,15 +175,22 @@ COPY <<EOF /startup.sh
 #!/bin/sh
 set -e
 
-echo "🚀 Starting BTCS Coach container..."
+echo "🚀 Starting BTCS Coach container... (Build: $(date))"
 
 # Handle Railway's PORT environment variable - Railway might set it to empty string
-PORT_VALUE="${PORT:-80}"
-if [ -z "$PORT_VALUE" ] || [ "$PORT_VALUE" = "" ]; then
+echo "🔍 Debug - Raw PORT env var: '${PORT}'"
+echo "🔍 Debug - PORT length: ${#PORT}"
+
+# Force set to 80 if empty or unset
+if [ -z "${PORT}" ] || [ "${PORT}" = "" ]; then
     PORT_VALUE=80
+    echo "🔧 PORT was empty/unset, forcing to: $PORT_VALUE"
+else
+    PORT_VALUE="${PORT}"
+    echo "🔧 Using Railway PORT: $PORT_VALUE"
 fi
 
-echo "🌐 Using port: $PORT_VALUE"
+echo "🌐 Final port value: $PORT_VALUE"
 
 # Update nginx config to use the correct port
 if [ "$PORT_VALUE" != "80" ]; then
