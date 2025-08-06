@@ -202,7 +202,7 @@ class ProductionDataSeeder extends Seeder
         foreach ($createdModules as $module) {
             if (!$johnUser->accessibleModules()->where('module_id', $module->id)->exists()) {
                 $johnUser->accessibleModules()->attach($module->id, [
-                    'assigned_at' => null, // Matches local DB
+                    'assigned_at' => now(), // Set to current time since NULL not allowed
                     'progress_data' => null, // Matches local DB  
                 ]);
             }
