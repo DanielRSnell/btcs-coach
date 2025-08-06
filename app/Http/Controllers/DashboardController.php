@@ -16,12 +16,10 @@ class DashboardController extends Controller
         $user = $request->user();
 
         $data = [
-            'user' => $user->load('achievements', 'actionItems'),
+            'user' => $user->load('actionItems'),
             'stats' => $this->getUserStats($user),
-            'recentSessions' => $this->getRecentSessions($user),
             'pendingActionItems' => $this->getPendingActionItems($user),
             'availableModules' => $this->getAvailableModules($user),
-            'recentAchievements' => $this->getRecentAchievements($user),
         ];
 
         return Inertia::render('Dashboard', $data);
@@ -29,32 +27,28 @@ class DashboardController extends Controller
 
     private function getUserStats($user)
     {
+        $assignedModules = $user->accessibleModules()->count();
+        $completedModules = $user->accessibleModules()->wherePivot('completed_at', '!=', null)->count();
+        $inProgressModules = $user->accessibleModules()->wherePivot('assigned_at', '!=', null)->wherePivot('completed_at', null)->count();
+        
         return [
-            'totalSessions' => $user->coachingSessions()->count(),
-            'completedSessions' => $user->coachingSessions()->where('status', 'completed')->count(),
-            'totalAchievements' => $user->achievements()->where('is_unlocked', true)->count(),
-            'totalPoints' => $user->achievements()->where('is_unlocked', true)->sum('points'),
+            'totalModules' => $assignedModules,
+            'completedModules' => $completedModules,
+            'inProgressModules' => $inProgressModules,
             'pendingActionItems' => $user->actionItems()->whereIn('status', ['pending', 'in_progress'])->count(),
             'completedActionItems' => $user->actionItems()->where('status', 'completed')->count(),
-            'assignedModules' => $user->accessibleModules()->count(),
+            'moduleCompletionRate' => $assignedModules > 0 ? round(($completedModules / $assignedModules) * 100) : 0,
         ];
     }
 
-    private function getRecentSessions($user)
-    {
-        return $user->coachingSessions()
-            ->with('module')
-            ->latest()
-            ->limit(5)
-            ->get();
-    }
 
     private function getPendingActionItems($user)
     {
         return $user->actionItems()
-            ->with('coachingSession')
+            ->with(['module', 'coachingSession'])
             ->whereIn('status', ['pending', 'in_progress'])
             ->orderBy('due_date', 'asc')
+            ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
     }
@@ -67,12 +61,4 @@ class DashboardController extends Controller
             ->get();
     }
 
-    private function getRecentAchievements($user)
-    {
-        return $user->achievements()
-            ->where('is_unlocked', true)
-            ->latest('unlocked_at')
-            ->limit(5)
-            ->get();
-    }
 }

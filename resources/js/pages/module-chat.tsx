@@ -5,8 +5,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Clock, BookOpen, Target, CheckCircle, Circle, AlertCircle } from "lucide-react";
-import { Link } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 
 // TypeScript declaration for Voiceflow global object
 declare global {
@@ -24,10 +33,13 @@ interface Module {
     id: number;
     title: string;
     description: string;
+    goal: string;
     slug: string;
     type: 'coaching' | 'training' | 'assessment';
     topics: string[];
+    sample_questions: string[];
     learning_objectives: string;
+    expected_outcomes: string;
     estimated_duration: number;
     difficulty: 'beginner' | 'intermediate' | 'advanced';
 }
@@ -49,6 +61,24 @@ interface ModuleChatPageProps {
         name: string;
         email: string;
         role: string;
+        pi_behavioral_pattern_id: number | null;
+        pi_behavioral_pattern: {
+            id: number;
+            name: string;
+            code: string;
+            description: string;
+        } | null;
+        pi_raw_scores: {
+            dominance: number;
+            extraversion: number;
+            patience: number;
+            formality: number;
+        } | null;
+        pi_assessed_at: string | null;
+        pi_notes: string | null;
+        pi_profile: any | null;
+        has_pi_assessment: boolean;
+        has_pi_profile: boolean;
     } | null;
     actionItems?: ActionItem[];
 }
@@ -83,6 +113,57 @@ const getStatusIcon = (status: string) => {
 };
 
 export default function ModuleChat({ module, user, actionItems = [] }: ModuleChatPageProps) {
+    const [selectedActionItem, setSelectedActionItem] = useState<ActionItem | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
+    const { props } = usePage();
+    const successMessage = (props as any).flash?.success;
+
+    // Handle flash success message for user feedback
+    useEffect(() => {
+        if (successMessage) {
+            // You could replace this with a toast notification system if preferred
+            console.log('Success:', successMessage);
+        }
+    }, [successMessage]);
+
+    const handleActionItemClick = (item: ActionItem) => {
+        setSelectedActionItem(item);
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setSelectedActionItem(null);
+        setIsUpdating(false); // Reset updating state
+    };
+
+    const handleMarkAsCompleted = () => {
+        if (!selectedActionItem) return;
+        
+        setIsUpdating(true);
+        router.put(`/action-items/${selectedActionItem.id}/complete`, {}, {
+            preserveState: false, // Allow state refresh to show updated action items
+            preserveScroll: true,
+            onSuccess: (page) => {
+                // Close modal immediately after successful response
+                setIsModalOpen(false);
+                setSelectedActionItem(null);
+                setIsUpdating(false);
+                
+                // Provide user feedback
+                console.log('Action item marked as completed successfully');
+            },
+            onError: (errors) => {
+                console.error('Failed to update action item:', errors);
+                alert('Failed to update action item. Please try again.');
+                setIsUpdating(false);
+            },
+            onFinish: () => {
+                setIsUpdating(false);
+            }
+        });
+    };
     useEffect(() => {
         // Initialize Voiceflow when component mounts
         const initializeVoiceflow = () => {
@@ -101,6 +182,49 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
                             const targetElement = document.getElementById('btcs-chat');
                             console.log('Target element for Voiceflow:', targetElement);
                             
+                            // Debug: Log the complete payload being sent to Voiceflow
+                            const payload = {
+                                route: {
+                                    name: 'modules.chat',
+                                    path: `/modules/${module.slug}/chat`,
+                                    params: {
+                                        slug: module.slug
+                                    }
+                                },
+                                module: {
+                                    id: module.id,
+                                    title: module.title,
+                                    description: module.description,
+                                    goal: module.goal,
+                                    type: module.type,
+                                    slug: module.slug,
+                                    topics: module.topics,
+                                    topics_string: module.topics.join(', '),
+                                    sample_questions: module.sample_questions,
+                                    learning_objectives: module.learning_objectives,
+                                    expected_outcomes: module.expected_outcomes,
+                                    estimated_duration: module.estimated_duration,
+                                    difficulty: module.difficulty
+                                },
+                                user: {
+                                    id: user?.id || 0,
+                                    name: user?.name || 'Anonymous',
+                                    email: user?.email || '',
+                                    role: user?.role || 'member',
+                                    pi_behavioral_pattern_id: user?.pi_behavioral_pattern_id || null,
+                                    pi_behavioral_pattern: user?.pi_behavioral_pattern || null,
+                                    pi_raw_scores: user?.pi_raw_scores || null,
+                                    pi_assessed_at: user?.pi_assessed_at || null,
+                                    pi_notes: user?.pi_notes || null,
+                                    pi_profile: user?.pi_profile || null,
+                                    has_pi_assessment: user?.has_pi_assessment || false,
+                                    has_pi_profile: user?.has_pi_profile || false
+                                },
+                                session_context: 'pi_ssl_coaching'
+                            };
+                            
+                            console.log('🚀 Voiceflow Payload:', JSON.stringify(payload, null, 2));
+                            
                             window.voiceflow.chat.load({
                                 verify: { projectID: '686331bc96acfa1dd62f6fd5' },
                                 url: 'https://general-runtime.voiceflow.com',
@@ -113,38 +237,14 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
                                     target: targetElement
                                 },
                                 assistant: {
-                                    stylesheet: '/voiceflow.css'
+                                    // Generate a date string to avoid caching
+                                    stylesheet: '/voiceflow.css?v=' + new Date().toISOString().replace(/[:.]/g, '-')
                                 },
                                 autostart: true,
                                 launch: {
                                     event: {
                                         type: 'launch',
-                                        payload: {
-                                            route: {
-                                                name: 'modules.chat',
-                                                path: `/modules/${module.slug}/chat`,
-                                                params: {
-                                                    slug: module.slug
-                                                }
-                                            },
-                                            module: {
-                                                id: module.id,
-                                                title: module.title,
-                                                type: module.type,
-                                                slug: module.slug,
-                                                topics: module.topics.join(', '),
-                                                learning_objectives: module.learning_objectives,
-                                                estimated_duration: module.estimated_duration,
-                                                difficulty: module.difficulty
-                                            },
-                                            user: {
-                                                id: user?.id || 0,
-                                                name: user?.name || 'Anonymous',
-                                                email: user?.email || '',
-                                                role: user?.role || 'member'
-                                            },
-                                            session_context: 'pi_ssl_coaching'
-                                        }
+                                        payload: payload
                                     }
                                 },
                             });
@@ -215,7 +315,7 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
         <AppLayout>
             <Head title={`${module.title} - Interactive Session`} />
             
-            <div className="flex gap-6 h-[calc(100vh-120px)]">
+            <div className="flex gap-6" style={{ height: 'calc(100vh - 200px)' }}>
                 {/* Main Chat Area */}
                 <div className="flex-1 flex flex-col">
                     {/* Chat Header */}
@@ -241,13 +341,13 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
                     </div>
 
                     {/* Chat Interface Container - Full Height */}
-                    <Card className="flex-1 flex flex-col py-0">
+                    <Card className="flex-1 flex flex-col py-0" style={{ minHeight: '500px', maxHeight: 'calc(100vh - 280px)' }}>
                         <CardContent className="p-0 flex-1">
                             {/* Voiceflow Chat Container */}
                             <div 
                                 id="btcs-chat" 
                                 className="w-full h-full"
-                                style={{ minHeight: '600px' }}
+                                style={{ maxHeight: 'calc(100vh - 200px)' }}
                             >
                                 {/* This div will be populated by Voiceflow's embed script */}
                                 <div className="flex items-center justify-center h-full text-gray-500">
@@ -363,22 +463,28 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
                         <TabsContent value="actions" className="space-y-4 mt-4">
                             <Card>
                                 <CardHeader className="pb-3">
-                                    <CardTitle className="text-lg">Action Items</CardTitle>
+                                    <CardTitle className="text-lg">Module Action Items</CardTitle>
                                     <CardDescription className="text-sm">
-                                        Tasks and objectives for this module
+                                        Your personalized tasks and objectives for {module.title}
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     {actionItems.length === 0 ? (
                                         <div className="text-center py-6 text-gray-500">
                                             <Target className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-                                            <p className="text-sm">No action items yet</p>
-                                            <p className="text-xs mt-1">Complete the session to generate tasks</p>
+                                            <p className="text-sm">No action items for this module yet</p>
+                                            <p className="text-xs mt-1">Complete coaching sessions to generate personalized tasks</p>
                                         </div>
                                     ) : (
                                         <div className="space-y-3">
                                             {actionItems.map((item) => (
-                                                <div key={item.id} className="border rounded-lg p-3 space-y-2">
+                                                <motion.div 
+                                                    key={item.id} 
+                                                    className="border rounded-lg p-3 space-y-2 cursor-pointer hover:bg-gray-50 transition-colors"
+                                                    onClick={() => handleActionItemClick(item)}
+                                                    whileHover={{ scale: 1.01 }}
+                                                    whileTap={{ scale: 0.99 }}
+                                                >
                                                     <div className="flex items-start gap-2">
                                                         {getStatusIcon(item.status)}
                                                         <div className="flex-1 min-w-0">
@@ -407,7 +513,7 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
                                                             {item.context}
                                                         </div>
                                                     )}
-                                                </div>
+                                                </motion.div>
                                             ))}
                                         </div>
                                     )}
@@ -417,6 +523,98 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
                     </Tabs>
                 </div>
             </div>
+
+            {/* Action Item Modal */}
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            {selectedActionItem && getStatusIcon(selectedActionItem.status)}
+                            {selectedActionItem?.title}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Action item details and progress tracking
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {selectedActionItem && (
+                        <div className="space-y-6">
+                            {/* Status and Priority Info */}
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-gray-700">Status:</span>
+                                    <Badge variant={selectedActionItem.status === 'completed' ? 'default' : 'secondary'}>
+                                        {selectedActionItem.status.replace('_', ' ')}
+                                    </Badge>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-gray-700">Priority:</span>
+                                    <Badge variant="outline" className={priorityColors[selectedActionItem.priority]}>
+                                        {selectedActionItem.priority}
+                                    </Badge>
+                                </div>
+                            </div>
+
+                            {/* Due Date */}
+                            {selectedActionItem.due_date && (
+                                <div className="flex items-center gap-2">
+                                    <Clock className="h-4 w-4 text-gray-500" />
+                                    <span className="text-sm text-gray-700">
+                                        Due: {new Date(selectedActionItem.due_date).toLocaleDateString('en-US', {
+                                            weekday: 'long',
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric'
+                                        })}
+                                    </span>
+                                </div>
+                            )}
+
+                            {/* Description */}
+                            <div>
+                                <h4 className="text-sm font-medium text-gray-900 mb-2">Description</h4>
+                                <p className="text-sm text-gray-700 leading-relaxed">
+                                    {selectedActionItem.description}
+                                </p>
+                            </div>
+
+                            {/* Context */}
+                            {selectedActionItem.context && (
+                                <div>
+                                    <h4 className="text-sm font-medium text-gray-900 mb-2">Context</h4>
+                                    <p className="text-sm text-gray-600 italic">
+                                        {selectedActionItem.context}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Module Info */}
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <BookOpen className="h-4 w-4 text-blue-600" />
+                                    <h4 className="text-sm font-medium text-blue-900">Related Module</h4>
+                                </div>
+                                <p className="text-sm text-blue-800">{module.title}</p>
+                                <p className="text-xs text-blue-600 mt-1">{module.description}</p>
+                            </div>
+                        </div>
+                    )}
+
+                    <DialogFooter>
+                        <Button variant="outline" onClick={handleCloseModal}>
+                            Close
+                        </Button>
+                        {selectedActionItem?.status !== 'completed' && (
+                            <Button 
+                                onClick={handleMarkAsCompleted}
+                                disabled={isUpdating}
+                            >
+                                {isUpdating ? 'Updating...' : 'Mark as Completed'}
+                            </Button>
+                        )}
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }

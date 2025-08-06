@@ -6,16 +6,11 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { 
-    Trophy, 
     Target, 
     BookOpen, 
-    Calendar, 
     CheckCircle, 
     Clock,
-    Star,
-    TrendingUp,
-    Users,
-    Award
+    TrendingUp
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -26,30 +21,24 @@ interface DashboardProps {
         role: 'admin' | 'member';
     };
     stats: {
-        totalSessions: number;
-        completedSessions: number;
-        totalAchievements: number;
-        totalPoints: number;
+        totalModules: number;
+        completedModules: number;
+        inProgressModules: number;
         pendingActionItems: number;
         completedActionItems: number;
-        assignedModules: number;
+        moduleCompletionRate: number;
     };
-    recentSessions: Array<{
-        id: number;
-        topic: string;
-        status: string;
-        duration: number;
-        started_at: string;
-        module?: {
-            title: string;
-        };
-    }>;
     pendingActionItems: Array<{
         id: number;
         title: string;
         priority: 'low' | 'medium' | 'high';
         due_date: string;
         status: string;
+        module?: {
+            id: number;
+            title: string;
+            slug: string;
+        };
     }>;
     availableModules: Array<{
         id: number;
@@ -59,14 +48,6 @@ interface DashboardProps {
         type: string;
         difficulty: string;
         estimated_duration: number;
-    }>;
-    recentAchievements: Array<{
-        id: number;
-        title: string;
-        description: string;
-        points: number;
-        badge_color: string;
-        unlocked_at: string;
     }>;
 }
 
@@ -85,7 +66,7 @@ const itemVariants = {
     visible: { opacity: 1, y: 0 }
 };
 
-export default function Dashboard({ user, stats, recentSessions, pendingActionItems, availableModules, recentAchievements }: DashboardProps) {
+export default function Dashboard({ user, stats, pendingActionItems, availableModules }: DashboardProps) {
     const getPriorityColor = (priority: string) => {
         switch (priority) {
             case 'high': return 'bg-red-100 text-red-800 border-red-200';
@@ -104,7 +85,6 @@ export default function Dashboard({ user, stats, recentSessions, pendingActionIt
         }
     };
 
-    const completionRate = stats.totalSessions > 0 ? Math.round((stats.completedSessions / stats.totalSessions) * 100) : 0;
 
     return (
         <AppLayout
@@ -135,39 +115,39 @@ export default function Dashboard({ user, stats, recentSessions, pendingActionIt
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Total Sessions</CardTitle>
-                                <Calendar className="h-4 w-4 text-muted-foreground" />
+                                <CardTitle className="text-sm font-medium">Total Modules</CardTitle>
+                                <BookOpen className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{stats.totalSessions}</div>
+                                <div className="text-2xl font-bold">{stats.totalModules}</div>
                                 <p className="text-xs text-muted-foreground">
-                                    {stats.completedSessions} completed
+                                    Assigned to you
                                 </p>
                             </CardContent>
                         </Card>
 
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Achievements</CardTitle>
-                                <Trophy className="h-4 w-4 text-muted-foreground" />
+                                <CardTitle className="text-sm font-medium">Completed</CardTitle>
+                                <CheckCircle className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{stats.totalAchievements}</div>
+                                <div className="text-2xl font-bold">{stats.completedModules}</div>
                                 <p className="text-xs text-muted-foreground">
-                                    {stats.totalPoints} total points
+                                    Modules finished
                                 </p>
                             </CardContent>
                         </Card>
 
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Action Items</CardTitle>
-                                <Target className="h-4 w-4 text-muted-foreground" />
+                                <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+                                <Clock className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{stats.pendingActionItems}</div>
+                                <div className="text-2xl font-bold">{stats.inProgressModules}</div>
                                 <p className="text-xs text-muted-foreground">
-                                    {stats.completedActionItems} completed
+                                    Currently working on
                                 </p>
                             </CardContent>
                         </Card>
@@ -178,8 +158,8 @@ export default function Dashboard({ user, stats, recentSessions, pendingActionIt
                                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{completionRate}%</div>
-                                <Progress value={completionRate} className="mt-2" />
+                                <div className="text-2xl font-bold">{stats.moduleCompletionRate}%</div>
+                                <Progress value={stats.moduleCompletionRate} className="mt-2" />
                             </CardContent>
                         </Card>
                     </div>
@@ -258,6 +238,11 @@ export default function Dashboard({ user, stats, recentSessions, pendingActionIt
                                         >
                                             <div className="flex-1">
                                                 <h4 className="font-medium text-sm">{item.title}</h4>
+                                                {item.module && (
+                                                    <p className="text-xs text-blue-600 mt-1">
+                                                        📘 {item.module.title}
+                                                    </p>
+                                                )}
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <Badge size="sm" className={getPriorityColor(item.priority)}>
                                                         {item.priority}
@@ -285,90 +270,6 @@ export default function Dashboard({ user, stats, recentSessions, pendingActionIt
                     </motion.div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Recent Sessions */}
-                    <motion.div variants={itemVariants}>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Users className="h-5 w-5" />
-                                    Recent Sessions
-                                </CardTitle>
-                                <CardDescription>
-                                    Your latest coaching activities
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                {recentSessions.length > 0 ? (
-                                    recentSessions.map((session) => (
-                                        <div key={session.id} className="flex items-center justify-between p-3 border rounded-lg">
-                                            <div>
-                                                <h4 className="font-medium text-sm">{session.topic || 'Coaching Session'}</h4>
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    {session.module?.title && `${session.module.title} • `}
-                                                    {session.duration && `${session.duration} min • `}
-                                                    {new Date(session.started_at).toLocaleDateString()}
-                                                </p>
-                                            </div>
-                                            <Badge variant={session.status === 'completed' ? 'default' : 'secondary'}>
-                                                {session.status}
-                                            </Badge>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-8 text-gray-500">
-                                        <Calendar className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                                        <p>No sessions yet</p>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </motion.div>
-
-                    {/* Recent Achievements */}
-                    <motion.div variants={itemVariants}>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Award className="h-5 w-5" />
-                                    Recent Achievements
-                                </CardTitle>
-                                <CardDescription>
-                                    Your latest accomplishments
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                {recentAchievements.length > 0 ? (
-                                    recentAchievements.map((achievement) => (
-                                        <motion.div
-                                            key={achievement.id}
-                                            className="flex items-center gap-3 p-3 border rounded-lg"
-                                            whileHover={{ scale: 1.02 }}
-                                        >
-                                            <div 
-                                                className="w-10 h-10 rounded-full flex items-center justify-center"
-                                                style={{ backgroundColor: achievement.badge_color + '20', color: achievement.badge_color }}
-                                            >
-                                                <Star className="h-5 w-5" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <h4 className="font-medium text-sm">{achievement.title}</h4>
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    {achievement.points} points • {new Date(achievement.unlocked_at).toLocaleDateString()}
-                                                </p>
-                                            </div>
-                                        </motion.div>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-8 text-gray-500">
-                                        <Trophy className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                                        <p>No achievements yet</p>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </motion.div>
-                </div>
             </motion.div>
         </AppLayout>
     );

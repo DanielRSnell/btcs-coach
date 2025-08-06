@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Module;
 use App\Models\ActionItem;
 use App\Models\CoachingSession;
 use Illuminate\Database\Seeder;
@@ -22,11 +23,17 @@ class ActionItemSeeder extends Seeder
 
         // Get some coaching sessions
         $sessions = CoachingSession::where('user_id', $johnDoe->id)->get();
+        
+        // Get modules for mapping
+        $coreCoachingModule = Module::where('slug', 'core-coaching-scenarios')->first();
+        $personalizationModule = Module::where('slug', 'personalization-predictive-index')->first();
+        $performanceModule = Module::where('slug', 'performance-growth-cycle')->first();
 
         $actionItems = [
             // High priority items
             [
                 'user_id' => $johnDoe->id,
+                'module_id' => $coreCoachingModule?->id,
                 'coaching_session_id' => $sessions->where('status', 'completed')->first()?->id,
                 'title' => 'Practice Active Listening with Team Members',
                 'description' => 'Based on your PI assessment showing strong Dominance, focus on pausing to truly listen before responding in team meetings. Practice the SOLER technique (Square shoulders, Open posture, Lean in, Eye contact, Relax).',
@@ -37,6 +44,7 @@ class ActionItemSeeder extends Seeder
             ],
             [
                 'user_id' => $johnDoe->id,
+                'module_id' => $personalizationModule?->id,
                 'coaching_session_id' => $sessions->where('topic', 'like', '%Communication%')->first()?->id,
                 'title' => 'Adapt Communication Style for Analytical Team Members',
                 'description' => 'Identified two team members with high Formality/low Extraversion patterns. Prepare detailed data and documentation before presenting new initiatives to them.',
@@ -49,6 +57,7 @@ class ActionItemSeeder extends Seeder
             // Medium priority items
             [
                 'user_id' => $johnDoe->id,
+                'module_id' => $performanceModule?->id,
                 'coaching_session_id' => $sessions->where('topic', 'like', '%Leadership%')->first()?->id,
                 'title' => 'Assess Team Member Readiness Levels for Current Project',
                 'description' => 'Apply situational leadership model to evaluate each team member\'s competence and commitment levels for the Q4 project deliverables.',
@@ -59,6 +68,7 @@ class ActionItemSeeder extends Seeder
             ],
             [
                 'user_id' => $johnDoe->id,
+                'module_id' => $performanceModule?->id,
                 'coaching_session_id' => null,
                 'title' => 'Complete Personal Leadership Goals Review',
                 'description' => 'Review and update personal development goals based on recent PI insights and SSL learning. Focus on areas identified during coaching sessions.',
@@ -71,6 +81,7 @@ class ActionItemSeeder extends Seeder
             // Low priority items
             [
                 'user_id' => $johnDoe->id,
+                'module_id' => $personalizationModule?->id,
                 'coaching_session_id' => null,
                 'title' => 'Schedule Follow-up PI Assessment',
                 'description' => 'Book follow-up PI behavioral assessment in 6 months to track behavioral development and adaptation progress.',
@@ -83,6 +94,7 @@ class ActionItemSeeder extends Seeder
             // Completed items
             [
                 'user_id' => $johnDoe->id,
+                'module_id' => $personalizationModule?->id,
                 'coaching_session_id' => $sessions->first()?->id,
                 'title' => 'Complete Initial PI Behavioral Assessment',
                 'description' => 'Take the Predictive Index behavioral assessment to understand personal behavioral drives and leadership tendencies.',

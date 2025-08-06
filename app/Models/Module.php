@@ -12,10 +12,13 @@ class Module extends Model
     protected $fillable = [
         'title',
         'description',
+        'goal',
         'slug',
         'type',
         'topics',
+        'sample_questions',
         'learning_objectives',
+        'expected_outcomes',
         'estimated_duration',
         'difficulty',
         'is_active',
@@ -25,6 +28,7 @@ class Module extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'topics' => 'array',
+        'sample_questions' => 'array',
     ];
 
     /**
@@ -51,5 +55,13 @@ class Module extends Model
     public function achievements()
     {
         return $this->hasMany(Achievement::class);
+    }
+
+    /**
+     * Get the action items for this module.
+     */
+    public function actionItems()
+    {
+        return $this->hasMany(ActionItem::class);
     }
 }

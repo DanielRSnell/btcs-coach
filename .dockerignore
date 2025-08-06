@@ -1,0 +1,36 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+DEPLOY.md
+
+# Node modules (we'll install fresh)
+node_modules
+
+# Laravel
+/vendor
+.env
+.env.backup
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+
+# IDE
+/.vscode
+/.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local development
+/public/hot
+/public/build
+/storage/*.key
+/storage/logs/*
+/bootstrap/cache/*

@@ -71,10 +71,6 @@ class UserResource extends Resource
                             ->searchable()
                             ->preload()
                             ->placeholder('Select a PI pattern'),
-                        Forms\Components\TextInput::make('pi_assessor_name')
-                            ->label('Assessor Name')
-                            ->maxLength(255)
-                            ->placeholder('Who conducted the assessment?'),
                         Forms\Components\DateTimePicker::make('pi_assessed_at')
                             ->label('Assessment Date'),
                         Forms\Components\Textarea::make('pi_notes')
@@ -84,30 +80,116 @@ class UserResource extends Resource
                     ])->columns(2)
                     ->collapsible(),
                 
-                Forms\Components\Section::make('PI Individual Scores (0-100)')
+                Forms\Components\Section::make('Performance Index Profile')
                     ->schema([
-                        Forms\Components\TextInput::make('pi_raw_scores.dominance')
-                            ->label('Dominance (A)')
-                            ->numeric()
-                            ->minValue(0)
-                            ->maxValue(100),
-                        Forms\Components\TextInput::make('pi_raw_scores.extraversion')
-                            ->label('Extraversion (B)')
-                            ->numeric()
-                            ->minValue(0)
-                            ->maxValue(100),
-                        Forms\Components\TextInput::make('pi_raw_scores.patience')
-                            ->label('Patience (C)')
-                            ->numeric()
-                            ->minValue(0)
-                            ->maxValue(100),
-                        Forms\Components\TextInput::make('pi_raw_scores.formality')
-                            ->label('Formality (D)')
-                            ->numeric()
-                            ->minValue(0)
-                            ->maxValue(100),
-                    ])->columns(2)
-                    ->collapsible(),
+                        Forms\Components\Fieldset::make('Basic Information')
+                            ->schema([
+                                Forms\Components\DatePicker::make('pi_profile.basic_info.assessment_date')
+                                    ->label('Assessment Date'),
+                                Forms\Components\DatePicker::make('pi_profile.basic_info.report_date')
+                                    ->label('Report Date'),
+                                Forms\Components\TextInput::make('pi_profile.basic_info.profile_type')
+                                    ->label('Profile Type')
+                                    ->maxLength(255),
+                                Forms\Components\Textarea::make('pi_profile.basic_info.profile_description')
+                                    ->label('Profile Description')
+                                    ->rows(3),
+                            ])->columns(2),
+
+                        Forms\Components\Fieldset::make('Behavioral Traits')
+                            ->schema([
+                                Forms\Components\Repeater::make('pi_profile.behavioral_traits.strongest_behaviors')
+                                    ->label('Strongest Behaviors')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('behavior')
+                                            ->label('Behavior Statement')
+                                            ->required(),
+                                    ])
+                                    ->addActionLabel('Add Behavior')
+                                    ->collapsible()
+                                    ->itemLabel(fn (array $state): ?string => $state['behavior'] ?? null),
+                                Forms\Components\Textarea::make('pi_profile.behavioral_traits.summary')
+                                    ->label('Summary')
+                                    ->rows(4)
+                                    ->columnSpanFull(),
+                            ]),
+
+                        Forms\Components\Fieldset::make('Management Strategies')
+                            ->schema([
+                                Forms\Components\Repeater::make('pi_profile.management_strategies.optimal_conditions')
+                                    ->label('Optimal Conditions')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('condition')
+                                            ->label('Condition')
+                                            ->required(),
+                                    ])
+                                    ->addActionLabel('Add Condition')
+                                    ->collapsible()
+                                    ->itemLabel(fn (array $state): ?string => $state['condition'] ?? null),
+                                Forms\Components\Repeater::make('pi_profile.management_strategies.avoid_conditions')
+                                    ->label('Conditions to Avoid')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('condition')
+                                            ->label('Condition to Avoid')
+                                            ->required(),
+                                    ])
+                                    ->addActionLabel('Add Condition to Avoid')
+                                    ->collapsible()
+                                    ->itemLabel(fn (array $state): ?string => $state['condition'] ?? null),
+                            ]),
+
+                        Forms\Components\Fieldset::make('Work Preferences')
+                            ->schema([
+                                Forms\Components\TextInput::make('pi_profile.work_preferences.pace')
+                                    ->label('Pace'),
+                                Forms\Components\TextInput::make('pi_profile.work_preferences.decision_making')
+                                    ->label('Decision Making'),
+                                Forms\Components\TextInput::make('pi_profile.work_preferences.communication_style')
+                                    ->label('Communication Style'),
+                                Forms\Components\TextInput::make('pi_profile.work_preferences.focus')
+                                    ->label('Focus'),
+                                Forms\Components\TextInput::make('pi_profile.work_preferences.team_orientation')
+                                    ->label('Team Orientation'),
+                                Forms\Components\TextInput::make('pi_profile.work_preferences.risk_tolerance')
+                                    ->label('Risk Tolerance'),
+                            ])->columns(2),
+
+                        Forms\Components\Fieldset::make('Social Style')
+                            ->schema([
+                                Forms\Components\TextInput::make('pi_profile.social_style.formality')
+                                    ->label('Formality'),
+                                Forms\Components\TextInput::make('pi_profile.social_style.trust_building')
+                                    ->label('Trust Building'),
+                                Forms\Components\TextInput::make('pi_profile.social_style.relationship_focus')
+                                    ->label('Relationship Focus'),
+                            ])->columns(2),
+
+                        Forms\Components\Fieldset::make('Motivation Drivers')
+                            ->schema([
+                                Forms\Components\TextInput::make('pi_profile.motivation_drivers.recognition')
+                                    ->label('Recognition'),
+                                Forms\Components\TextInput::make('pi_profile.motivation_drivers.security')
+                                    ->label('Security'),
+                                Forms\Components\TextInput::make('pi_profile.motivation_drivers.autonomy')
+                                    ->label('Autonomy'),
+                                Forms\Components\TextInput::make('pi_profile.motivation_drivers.advancement')
+                                    ->label('Advancement'),
+                                Forms\Components\TextInput::make('pi_profile.motivation_drivers.collaboration')
+                                    ->label('Collaboration'),
+                            ])->columns(2),
+
+                        Forms\Components\Fieldset::make('Technical Orientation')
+                            ->schema([
+                                Forms\Components\TextInput::make('pi_profile.technical_orientation.detail_orientation')
+                                    ->label('Detail Orientation'),
+                                Forms\Components\TextInput::make('pi_profile.technical_orientation.innovation_tolerance')
+                                    ->label('Innovation Tolerance'),
+                                Forms\Components\TextInput::make('pi_profile.technical_orientation.process_adherence')
+                                    ->label('Process Adherence'),
+                            ])->columns(2),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
             ]);
     }
 
@@ -150,6 +232,12 @@ class UserResource extends Resource
                     ->placeholder('-')
                     ->sortable()
                     ->toggleable(),
+                Tables\Columns\IconColumn::make('pi_profile')
+                    ->label('Has PI Profile')
+                    ->boolean()
+                    ->getStateUsing(fn ($record) => !is_null($record->pi_profile))
+                    ->sortable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -181,6 +269,12 @@ class UserResource extends Resource
                 Tables\Filters\Filter::make('no_pi_assessment')
                     ->query(fn (Builder $query): Builder => $query->whereNull('pi_behavioral_pattern_id'))
                     ->label('No PI Assessment'),
+                Tables\Filters\Filter::make('has_pi_profile')
+                    ->query(fn (Builder $query): Builder => $query->whereNotNull('pi_profile'))
+                    ->label('Has PI Profile'),
+                Tables\Filters\Filter::make('no_pi_profile')
+                    ->query(fn (Builder $query): Builder => $query->whereNull('pi_profile'))
+                    ->label('No PI Profile'),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

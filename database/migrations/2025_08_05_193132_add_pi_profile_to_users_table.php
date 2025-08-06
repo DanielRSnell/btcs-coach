@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('coaching_sessions', function (Blueprint $table) {
-            $table->foreignId('module_id')->nullable()->after('user_id')->constrained()->onDelete('set null');
+        Schema::table('users', function (Blueprint $table) {
+            $table->json('pi_profile')->nullable()->after('pi_notes');
         });
     }
 
@@ -21,9 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('coaching_sessions', function (Blueprint $table) {
-            $table->dropForeign(['module_id']);
-            $table->dropColumn('module_id');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('pi_profile');
         });
     }
 };

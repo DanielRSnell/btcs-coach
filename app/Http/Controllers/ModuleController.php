@@ -45,7 +45,10 @@ class ModuleController extends Controller
 
         // Track that user started this module session
         $user = auth()->user();
+        
+        // Load PI behavioral pattern relationship if user exists
         if ($user) {
+            $user->load('piBehavioralPattern');
             $user->accessibleModules()->syncWithoutDetaching([
                 $module->id => [
                     'assigned_at' => now(),
@@ -58,11 +61,9 @@ class ModuleController extends Controller
         $actionItems = [];
         if ($user) {
             $actionItems = $user->actionItems()
-                ->where('context', 'LIKE', '%' . $module->slug . '%')
-                ->orWhere('context', 'LIKE', '%' . str_replace('-', ' ', $module->title) . '%')
+                ->where('module_id', $module->id)
                 ->orderBy('priority', 'desc')
                 ->orderBy('created_at', 'desc')
-                ->limit(10)
                 ->get()
                 ->map(function ($item) {
                     return [
@@ -71,7 +72,7 @@ class ModuleController extends Controller
                         'description' => $item->description,
                         'priority' => $item->priority,
                         'status' => $item->status,
-                        'due_date' => $item->due_date,
+                        'due_date' => $item->due_date?->format('Y-m-d'),
                         'context' => $item->context,
                     ];
                 });
@@ -83,7 +84,20 @@ class ModuleController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $user->role ?? 'member'
+                'role' => $user->role ?? 'member',
+                'pi_behavioral_pattern_id' => $user->pi_behavioral_pattern_id,
+                'pi_behavioral_pattern' => $user->piBehavioralPattern ? [
+                    'id' => $user->piBehavioralPattern->id,
+                    'name' => $user->piBehavioralPattern->name,
+                    'code' => $user->piBehavioralPattern->code,
+                    'description' => $user->piBehavioralPattern->description,
+                ] : null,
+                'pi_raw_scores' => $user->pi_raw_scores,
+                'pi_assessed_at' => $user->pi_assessed_at?->format('Y-m-d'),
+                'pi_notes' => $user->pi_notes,
+                'pi_profile' => $user->pi_profile,
+                'has_pi_assessment' => $user->hasPiAssessment(),
+                'has_pi_profile' => $user->hasPiProfile(),
             ] : null,
             'actionItems' => $actionItems
         ]);

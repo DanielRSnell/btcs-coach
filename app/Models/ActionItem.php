@@ -11,6 +11,7 @@ class ActionItem extends Model
 
     protected $fillable = [
         'user_id',
+        'module_id',
         'coaching_session_id',
         'title',
         'description',
@@ -32,6 +33,14 @@ class ActionItem extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the module this action item belongs to.
+     */
+    public function module()
+    {
+        return $this->belongsTo(Module::class);
     }
 
     /**

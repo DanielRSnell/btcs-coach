@@ -121,10 +121,16 @@ class DashboardTestSeeder extends Seeder
                 CoachingSession::create($sessionData);
             }
 
+            // Get modules for action items
+            $modules = Module::all();
+            $coreCoachingModule = $modules->where('slug', 'core-coaching-scenarios')->first();
+            $performanceModule = $modules->where('slug', 'performance-growth-cycle')->first();
+            
             // Create sample action items
             $actionItems = [
                 [
                     'user_id' => $user->id,
+                    'module_id' => $coreCoachingModule?->id,
                     'coaching_session_id' => CoachingSession::first()->id,
                     'title' => 'Schedule team one-on-ones',
                     'description' => 'Set up individual meetings with each team member this week.',
@@ -134,6 +140,7 @@ class DashboardTestSeeder extends Seeder
                 ],
                 [
                     'user_id' => $user->id,
+                    'module_id' => $performanceModule?->id,
                     'coaching_session_id' => CoachingSession::skip(1)->first()->id,
                     'title' => 'Research competitor pricing',
                     'description' => 'Analyze competitor pricing strategies for Q4 planning.',
@@ -143,6 +150,7 @@ class DashboardTestSeeder extends Seeder
                 ],
                 [
                     'user_id' => $user->id,
+                    'module_id' => $coreCoachingModule?->id,
                     'title' => 'Update project documentation',
                     'description' => 'Revise project documentation to reflect recent changes.',
                     'priority' => 'low',

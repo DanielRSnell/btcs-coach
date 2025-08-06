@@ -27,6 +27,7 @@ class User extends Authenticatable
         'pi_assessed_at',
         'pi_assessor_name',
         'pi_notes',
+        'pi_profile',
     ];
 
     /**
@@ -51,6 +52,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'pi_raw_scores' => 'array',
             'pi_assessed_at' => 'datetime',
+            'pi_profile' => 'array',
         ];
     }
 
@@ -156,5 +158,29 @@ class User extends Authenticatable
     public function getFormalityScore(): ?int
     {
         return $this->pi_raw_scores['formality'] ?? null;
+    }
+
+    /**
+     * Get user's PI profile data.
+     */
+    public function getPiProfile(): ?array
+    {
+        return $this->pi_profile;
+    }
+
+    /**
+     * Check if user has completed PI profile.
+     */
+    public function hasPiProfile(): bool
+    {
+        return !is_null($this->pi_profile);
+    }
+
+    /**
+     * Get specific section of PI profile.
+     */
+    public function getPiProfileSection(string $section): ?array
+    {
+        return $this->pi_profile[$section] ?? null;
     }
 }

@@ -120,6 +120,7 @@ class PiBehavioralPatternResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->withCount('users'))
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
@@ -146,7 +147,6 @@ class PiBehavioralPatternResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('users_count')
                     ->label('Users')
-                    ->counts('users')
                     ->sortable(),
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean()
