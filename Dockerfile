@@ -50,16 +50,20 @@ RUN php artisan migrate --force && \
     php artisan route:cache && \
     php artisan view:cache
 
-# Configure Nginx
+# Configure Nginx to run as www-data and fix permissions
+RUN sed -i 's/user nginx;/user www-data;/' /etc/nginx/nginx.conf
+
+# Configure Nginx virtual host
 COPY <<EOF /etc/nginx/http.d/default.conf
 server {
     listen 80;
     server_name _;
     root /var/www/html/public;
-    index index.php;
+    index index.php index.html;
 
     client_max_body_size 100M;
 
+    # Ensure proper file permissions
     location / {
         try_files \$uri \$uri/ /index.php?\$query_string;
     }
@@ -81,6 +85,12 @@ server {
     location ~* \.(css|gif|ico|jpeg|jpg|js|png|svg|woff|woff2|ttf|eot)\$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
+        try_files \$uri =404;
+    }
+
+    # Deny access to sensitive files
+    location ~ /(\.env|\.git|composer\.|package\.|docker) {
+        deny all;
     }
 }
 EOF
@@ -115,7 +125,10 @@ EOF
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html && \
-    chmod -R 755 /var/www/html
+    chmod -R 755 /var/www/html && \
+    chmod -R 775 /var/www/html/storage && \
+    chmod -R 775 /var/www/html/bootstrap/cache && \
+    chmod 644 /var/www/html/public/index.php
 
 # Health check script
 COPY <<EOF /health-check.sh
