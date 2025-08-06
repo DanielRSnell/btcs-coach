@@ -64,12 +64,47 @@ class ProductionDataSeeder extends Seeder
                 'password' => '$2y$12$SFqpLKu0YmbWflqquf0kWunfRpofQlQt/02hyp5q/sPNrnf4./DQy', // password
                 'role' => 'member',
                 'email_verified_at' => '2025-08-06 03:25:29',
-                'pi_behavioral_pattern_id' => null,
-                'pi_raw_scores' => null,
-                'pi_assessed_at' => null,
-                'pi_assessor_name' => null,
-                'pi_notes' => null,
-                'pi_profile' => null,
+                'pi_behavioral_pattern_id' => null, // Will be set after patterns are created
+                'pi_raw_scores' => [
+                    'dominance' => 75,
+                    'extraversion' => 85,
+                    'patience' => 50,
+                    'formality' => 25
+                ],
+                'pi_assessed_at' => '2021-08-04 00:00:00',
+                'pi_assessor_name' => 'H.G. Fenton HR Team',
+                'pi_notes' => 'A Persuader is a risk-taking, socially poised and motivating team builder.',
+                'pi_profile' => [
+                    'profile_type' => 'Persuader',
+                    'assessment_date' => '2021-08-04',
+                    'report_date' => '2021-09-03',
+                    'behavioral_traits' => [
+                        'strongest_behaviors' => [
+                            'Proactively connects quickly to others; open and sharing. Builds and leverages relationships to get work done.',
+                            'Comfortably fluent and fast talk, in volume. Enthusiastically persuades and motivates others by considering their point of view and adjusting delivery.',
+                            'Collaborative; usually works with and through others. Intuitive understanding of team cohesion, dynamics, and interpersonal relations.',
+                            'Works at a faster-than-average pace, producing results in general accordance with schedules and \'the book.\'',
+                            'Detail-oriented; typically makes and follows a plan to keep track of things and usually follows up to ensure completion.',
+                            'Focused on operational efficiencies: thinks about what needs to be done and how it can be done quickly without losing quality. Impatient with routines.'
+                        ],
+                        'summary' => 'Victor is a congenial, friendly communicator, capable of projecting enthusiasm and warmth, and motivating others. Works at a fast pace with an emphasis on getting results by working cooperatively with and through people. Understands people well and uses that insight to motivate and persuade effectively. Functions dependably within established plans and policies, and consults trusted advisors when handling decisions outside of established norms. Takes pride in bringing out the best in others and contributing to business success.'
+                    ],
+                    'work_preferences' => [
+                        'pace' => 'Faster-than-average pace; prefers active, dynamic environments',
+                        'decision_making' => 'Collaborative approach; seeks input from trusted advisors when outside established policies',
+                        'communication_style' => 'Warm, persuasive, and enthusiastic communicator',
+                        'focus' => 'Team-oriented with emphasis on results through collaboration',
+                        'team_orientation' => 'Highly collaborative; enjoys working with and through others',
+                        'risk_tolerance' => 'Moderate; prefers to mitigate risk by consulting experts when making unusual decisions'
+                    ],
+                    'motivation_drivers' => [
+                        'recognition' => 'High; values social and status recognition as rewards for achievement',
+                        'security' => 'Moderate; values management support during change',
+                        'autonomy' => 'Moderate; comfortable with autonomy when responsibilities are clearly defined',
+                        'advancement' => 'Motivated by opportunities to influence and lead teams',
+                        'collaboration' => 'Strong driver; thrives in team-focused environments'
+                    ]
+                ],
             ],
             [
                 'name' => 'Matt Putman',
@@ -77,12 +112,47 @@ class ProductionDataSeeder extends Seeder
                 'password' => '$2y$12$CrcaxuQD1OfYGfgVRfjBDOzLM8STbOjMrJTKUL60Ibvm3gSp0K1h.', // password
                 'role' => 'member',
                 'email_verified_at' => '2025-08-06 03:25:30',
-                'pi_behavioral_pattern_id' => null,
-                'pi_raw_scores' => null,
-                'pi_assessed_at' => null,
-                'pi_assessor_name' => null,
-                'pi_notes' => null,
-                'pi_profile' => null,
+                'pi_behavioral_pattern_id' => null, // Will be set after patterns are created
+                'pi_raw_scores' => [
+                    'dominance' => 85,
+                    'extraversion' => 75,
+                    'patience' => 50,
+                    'formality' => 50
+                ],
+                'pi_assessed_at' => '2016-10-21 00:00:00',
+                'pi_assessor_name' => 'H.G. Fenton HR Team',
+                'pi_notes' => 'A Captain is a problem solver who likes change and innovation while controlling the big picture.',
+                'pi_profile' => [
+                    'profile_type' => 'Captain',
+                    'assessment_date' => '2016-10-21',
+                    'report_date' => '2022-08-04',
+                    'behavioral_traits' => [
+                        'strongest_behaviors' => [
+                            'Proactivity, assertiveness, and sense of urgency in driving to reach personal goals. Openly challenges the world.',
+                            'Independent in putting forth their own ideas, which are often innovative and, if implemented, cause change. Resourcefully works through or around obstacles to accomplish goals; aggressive when challenged.',
+                            'Impatient for results; puts pressure on themself and others for rapid implementation, less productive when doing routine work.',
+                            'Proactively connects quickly to others; open and sharing. Builds and leverages relationships to get work done.',
+                            'Comfortably fluent and fast talker. Enthusiastically persuades and motivates others by considering their point of view and adjusting delivery.',
+                            'Collaborative; usually works with and through others. Intuitive understanding of team cohesion, dynamics, and interpersonal relations.'
+                        ],
+                        'summary' => 'Matt is a confident, independent self-starter with competitive drive, initiative, a sense of urgency, and the ability to make decisions and take responsibility for them. Responds quickly to changing conditions, comes up with ideas to address them, and acts decisively. Outgoing, poised, and a lively communicator, Matt prefers fast-paced work, delegates routine details, and focuses follow-up on results rather than process. Makes quick decisions, comfortable acting without complete information, and maintains progress toward goals through adaptive course corrections. Sets high standards for achievement and is driven by ambition and new challenges.'
+                    ],
+                    'work_preferences' => [
+                        'pace' => 'Distinctly faster-than-average pace; thrives in high-energy, dynamic environments',
+                        'decision_making' => 'Quick, confident decisions based on available information; comfortable acting without complete data',
+                        'communication_style' => 'Lively, authoritative, persuasive communicator',
+                        'focus' => 'Big-picture goals with flexibility on methods to achieve them',
+                        'team_orientation' => 'Collaborative with trusted individuals; delegates to capable team members',
+                        'risk_tolerance' => 'High; comfortable taking calculated risks and adapting as needed'
+                    ],
+                    'motivation_drivers' => [
+                        'recognition' => 'High; values recognition for achievements and demonstrated skills',
+                        'security' => 'Moderate; prefers stability in leadership expectations but thrives on change in tasks',
+                        'autonomy' => 'Very high; seeks independence and flexibility',
+                        'advancement' => 'Strong driver; motivated by opportunities for growth and competition',
+                        'collaboration' => 'Moderate; works collaboratively but values decisive action and independence'
+                    ]
+                ],
             ],
         ];
 
@@ -92,6 +162,18 @@ class ProductionDataSeeder extends Seeder
                 ['email' => $userData['email']],
                 $userData
             );
+        }
+        
+        // Assign PI Behavioral Pattern IDs after patterns are created
+        $persuaderPattern = PiBehavioralPattern::where('code', 'PERSUADER')->first();
+        $captainPattern = PiBehavioralPattern::where('code', 'CAPTAIN')->first();
+        
+        if ($persuaderPattern) {
+            $createdUsers['victor@umbral.ai']->update(['pi_behavioral_pattern_id' => $persuaderPattern->id]);
+        }
+        
+        if ($captainPattern) {
+            $createdUsers['matt.putman@example.com']->update(['pi_behavioral_pattern_id' => $captainPattern->id]);
         }
 
         // Create all current modules
@@ -204,6 +286,30 @@ class ProductionDataSeeder extends Seeder
                 $johnUser->accessibleModules()->attach($module->id, [
                     'assigned_at' => now(), // Set to current time since NULL not allowed
                     'progress_data' => null, // Matches local DB  
+                ]);
+            }
+        }
+        
+        // Assign some modules to Victor (Persuader profile)
+        $victorUser = $createdUsers['victor@umbral.ai'];
+        $victorModules = ['personalization-predictive-index', 'core-coaching-scenarios', 'advanced-team-culture-application'];
+        foreach ($victorModules as $moduleSlug) {
+            if (isset($createdModules[$moduleSlug]) && !$victorUser->accessibleModules()->where('module_id', $createdModules[$moduleSlug]->id)->exists()) {
+                $victorUser->accessibleModules()->attach($createdModules[$moduleSlug]->id, [
+                    'assigned_at' => now(),
+                    'progress_data' => json_encode(['completion_percentage' => rand(25, 75)]),
+                ]);
+            }
+        }
+        
+        // Assign some modules to Matt (Captain profile)  
+        $mattUser = $createdUsers['matt.putman@example.com'];
+        $mattModules = ['personalization-predictive-index', 'performance-growth-cycle', 'advanced-team-culture-application'];
+        foreach ($mattModules as $moduleSlug) {
+            if (isset($createdModules[$moduleSlug]) && !$mattUser->accessibleModules()->where('module_id', $createdModules[$moduleSlug]->id)->exists()) {
+                $mattUser->accessibleModules()->attach($createdModules[$moduleSlug]->id, [
+                    'assigned_at' => now(),
+                    'progress_data' => json_encode(['completion_percentage' => rand(25, 75)]),
                 ]);
             }
         }
@@ -327,6 +433,60 @@ class ProductionDataSeeder extends Seeder
                 'created_at' => '2025-08-06 03:25:30',
                 'updated_at' => '2025-08-06 03:25:30',
             ],
+            // Victor's Action Items (Persuader profile)
+            [
+                'user_id' => $createdUsers['victor@umbral.ai']->id,
+                'module_id' => $createdModules['personalization-predictive-index']->id,
+                'title' => 'Review Personal PI Persuader Profile',
+                'description' => 'Study Persuader behavioral traits and apply insights to current team interactions.',
+                'priority' => 'high',
+                'status' => 'completed',
+                'due_date' => '2025-08-10 00:00:00',
+                'context' => 'Initial PI assessment review and application',
+                'completed_at' => '2025-08-08 10:30:00',
+                'created_at' => '2025-08-06 03:25:30',
+                'updated_at' => '2025-08-08 10:30:00',
+            ],
+            [
+                'user_id' => $createdUsers['victor@umbral.ai']->id,
+                'module_id' => $createdModules['core-coaching-scenarios']->id,
+                'title' => 'Practice Motivational Communication Techniques',
+                'description' => 'Apply persuasive communication skills learned in coaching scenarios with team members.',
+                'priority' => 'medium',
+                'status' => 'in_progress',
+                'due_date' => '2025-08-15 00:00:00',
+                'context' => 'Leveraging Persuader strengths in team motivation',
+                'completed_at' => null,
+                'created_at' => '2025-08-06 03:25:30',
+                'updated_at' => '2025-08-06 03:25:30',
+            ],
+            // Matt's Action Items (Captain profile)
+            [
+                'user_id' => $createdUsers['matt.putman@example.com']->id,
+                'module_id' => $createdModules['personalization-predictive-index']->id,
+                'title' => 'Analyze Captain Leadership Style Impact',
+                'description' => 'Evaluate how Captain behavioral drives affect team dynamics and decision-making speed.',
+                'priority' => 'high',
+                'status' => 'completed',
+                'due_date' => '2025-08-12 00:00:00',
+                'context' => 'Strategic leadership assessment based on PI Captain profile',
+                'completed_at' => '2025-08-11 14:15:00',
+                'created_at' => '2025-08-06 03:25:30',
+                'updated_at' => '2025-08-11 14:15:00',
+            ],
+            [
+                'user_id' => $createdUsers['matt.putman@example.com']->id,
+                'module_id' => $createdModules['performance-growth-cycle']->id,
+                'title' => 'Implement Results-Focused Team Metrics',
+                'description' => 'Develop and deploy performance metrics that align with Captain focus on results and innovation.',
+                'priority' => 'high',
+                'status' => 'in_progress',
+                'due_date' => '2025-08-18 00:00:00',
+                'context' => 'Performance management strategy utilizing Captain strengths',
+                'completed_at' => null,
+                'created_at' => '2025-08-06 03:25:30',
+                'updated_at' => '2025-08-06 03:25:30',
+            ],
         ];
 
         foreach ($actionItems as $itemData) {
@@ -385,6 +545,38 @@ class ProductionDataSeeder extends Seeder
                 'progress_percentage' => 75.00,
                 'created_at' => '2025-08-06 03:25:30',
                 'updated_at' => '2025-08-06 03:25:30',
+            ],
+            // Victor's Achievements (Persuader profile)
+            [
+                'user_id' => $createdUsers['victor@umbral.ai']->id,
+                'module_id' => $createdModules['personalization-predictive-index']->id,
+                'title' => 'Persuader Insights',
+                'description' => 'Successfully applied Persuader profile insights to team motivation.',
+                'type' => 'completion',
+                'points' => 150,
+                'badge_icon' => 'users',
+                'badge_color' => '#8b5cf6',
+                'is_unlocked' => true,
+                'unlocked_at' => '2025-08-08 10:30:00',
+                'progress_percentage' => 100.00,
+                'created_at' => '2025-08-06 03:25:30',
+                'updated_at' => '2025-08-08 10:30:00',
+            ],
+            // Matt's Achievements (Captain profile)
+            [
+                'user_id' => $createdUsers['matt.putman@example.com']->id,
+                'module_id' => $createdModules['personalization-predictive-index']->id,
+                'title' => 'Strategic Leader',
+                'description' => 'Demonstrated Captain leadership qualities in strategic planning.',
+                'type' => 'completion',
+                'points' => 200,
+                'badge_icon' => 'shield',
+                'badge_color' => '#ef4444',
+                'is_unlocked' => true,
+                'unlocked_at' => '2025-08-11 14:15:00',
+                'progress_percentage' => 100.00,
+                'created_at' => '2025-08-06 03:25:30',
+                'updated_at' => '2025-08-11 14:15:00',
             ],
         ];
 
