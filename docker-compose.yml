@@ -17,6 +17,8 @@ services:
     volumes:
       - app_storage:/var/www/html/storage
       - app_database:/var/www/html/database
+    expose:
+      - "80"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/"]

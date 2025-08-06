@@ -50,8 +50,10 @@ RUN php artisan migrate --force && \
     php artisan route:cache && \
     php artisan view:cache
 
-# Configure Nginx to run as www-data and fix permissions
-RUN sed -i 's/user nginx;/user www-data;/' /etc/nginx/nginx.conf
+# Create www-data user and configure Nginx
+RUN addgroup -g 1000 -S www-data && \
+    adduser -u 1000 -D -S -G www-data www-data && \
+    sed -i 's/user nginx;/user www-data;/' /etc/nginx/nginx.conf
 
 # Configure Nginx virtual host
 COPY <<EOF /etc/nginx/http.d/default.conf
@@ -63,9 +65,16 @@ server {
 
     client_max_body_size 100M;
 
-    # Ensure proper file permissions
+    # Ensure proper file permissions and handle static files
     location / {
         try_files \$uri \$uri/ /index.php?\$query_string;
+    }
+    
+    # Handle missing favicon gracefully
+    location = /favicon.ico {
+        access_log off;
+        log_not_found off;
+        try_files \$uri =204;
     }
 
     location ~ \.php\$ {
@@ -140,5 +149,18 @@ RUN chmod +x /health-check.sh
 # Expose port
 EXPOSE 80
 
+# Create startup script to fix permissions on container startup
+COPY <<EOF /startup.sh
+#!/bin/sh
+# Fix permissions for mounted volumes
+chown -R www-data:www-data /var/www/html/storage /var/www/html/database
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+chmod 644 /var/www/html/public/index.php
 # Start supervisor
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+EOF
+
+RUN chmod +x /startup.sh
+
+# Start with our custom script
+CMD ["/startup.sh"]
