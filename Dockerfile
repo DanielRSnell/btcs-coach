@@ -50,10 +50,8 @@ RUN php artisan migrate --force && \
     php artisan route:cache && \
     php artisan view:cache
 
-# Create www-data user and configure Nginx
-RUN addgroup -g 1000 -S www-data && \
-    adduser -u 1000 -D -S -G www-data www-data && \
-    sed -i 's/user nginx;/user www-data;/' /etc/nginx/nginx.conf
+# Configure Nginx to use existing www-data user
+RUN sed -i 's/user nginx;/user www-data;/' /etc/nginx/nginx.conf
 
 # Configure Nginx virtual host
 COPY <<EOF /etc/nginx/http.d/default.conf
