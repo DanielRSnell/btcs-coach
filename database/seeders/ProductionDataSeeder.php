@@ -18,11 +18,21 @@ class ProductionDataSeeder extends Seeder
      */
     public function run(): void
     {
-        // Skip seeding if data already exists
-        if (User::where('email', 'admin@btcs.com')->exists()) {
-            $this->command->info('Production data already exists, skipping seeder.');
+        // Check if admin user already exists
+        $adminUser = User::where('email', 'admin@btcs.com')->first();
+        if ($adminUser) {
+            $this->command->info("Admin user already exists with role: {$adminUser->role}");
+            
+            // Ensure admin has correct role
+            if ($adminUser->role !== 'admin') {
+                $adminUser->update(['role' => 'admin']);
+                $this->command->info('Updated admin user role to admin.');
+            }
+            
             return;
         }
+
+        $this->command->info('Creating production data...');
 
         // Create main users
         $users = [
@@ -323,6 +333,12 @@ class ProductionDataSeeder extends Seeder
 
         foreach ($achievements as $achievementData) {
             Achievement::create($achievementData);
+        }
+
+        $this->command->info('Production data seeding completed successfully!');
+        $this->command->info('Created users:');
+        foreach ($createdUsers as $email => $user) {
+            $this->command->info("- {$user->name} ({$email}) - Role: {$user->role}");
         }
     }
 }
