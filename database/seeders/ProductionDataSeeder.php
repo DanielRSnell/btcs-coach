@@ -158,7 +158,7 @@ class ProductionDataSeeder extends Seeder
 
         $createdUsers = [];
         foreach ($users as $userData) {
-            $createdUsers[$userData['email']] = User::firstOrCreate(
+            $createdUsers[$userData['email']] = User::updateOrCreate(
                 ['email' => $userData['email']],
                 $userData
             );
