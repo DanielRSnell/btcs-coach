@@ -175,7 +175,7 @@ COPY <<EOF /startup.sh
 #!/bin/sh
 set -e
 
-echo "🚀 Starting BTCS Coach container... (Build: $(date))"
+echo "🚀 Starting BTCS Coach container... (Build: Aug 6 2025)"
 
 # Handle Railway's PORT environment variable - Railway might set it to empty string
 echo "🔍 Debug - Raw PORT env var: '${PORT}'"
