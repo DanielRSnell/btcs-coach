@@ -177,18 +177,18 @@ set -e
 
 echo "🚀 Starting BTCS Coach container..."
 
-# Handle Railway's PORT environment variable
-if [ -z "$PORT" ]; then
-    export PORT=80
-    echo "🌐 No PORT set, using default: $PORT"
-else
-    echo "🌐 Railway provided PORT: $PORT"
+# Handle Railway's PORT environment variable - Railway might set it to empty string
+PORT_VALUE="${PORT:-80}"
+if [ -z "$PORT_VALUE" ] || [ "$PORT_VALUE" = "" ]; then
+    PORT_VALUE=80
 fi
 
+echo "🌐 Using port: $PORT_VALUE"
+
 # Update nginx config to use the correct port
-if [ "$PORT" != "80" ]; then
-    echo "📝 Updating nginx to use port $PORT"
-    sed -i "s/listen 80;/listen $PORT;/" /etc/nginx/http.d/default.conf
+if [ "$PORT_VALUE" != "80" ]; then
+    echo "📝 Updating nginx to use port $PORT_VALUE"
+    sed -i "s/listen 80;/listen $PORT_VALUE;/" /etc/nginx/http.d/default.conf
 else
     echo "📝 Using default port 80"
 fi
