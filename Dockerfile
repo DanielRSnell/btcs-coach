@@ -49,7 +49,7 @@ RUN php artisan migrate --force && \
     php artisan view:cache
 
 # Configure Nginx
-RUN cat > /etc/nginx/http.d/default.conf << 'EOF'
+COPY <<EOF /etc/nginx/http.d/default.conf
 server {
     listen 80;
     server_name _;
@@ -59,12 +59,12 @@ server {
     client_max_body_size 100M;
 
     location / {
-        try_files $uri $uri/ /index.php?$query_string;
+        try_files \$uri \$uri/ /index.php?\$query_string;
     }
 
-    location ~ \.php$ {
+    location ~ \.php\$ {
         fastcgi_pass 127.0.0.1:9000;
-        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
         include fastcgi_params;
         fastcgi_read_timeout 300;
         fastcgi_buffer_size 128k;
@@ -76,7 +76,7 @@ server {
         deny all;
     }
 
-    location ~* \.(css|gif|ico|jpeg|jpg|js|png|svg|woff|woff2|ttf|eot)$ {
+    location ~* \.(css|gif|ico|jpeg|jpg|js|png|svg|woff|woff2|ttf|eot)\$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
     }
@@ -84,7 +84,7 @@ server {
 EOF
 
 # Configure Supervisor
-RUN cat > /etc/supervisor/conf.d/supervisord.conf << 'EOF'
+COPY <<EOF /etc/supervisor/conf.d/supervisord.conf
 [supervisord]
 nodaemon=true
 user=root
@@ -116,9 +116,11 @@ RUN chown -R www-data:www-data /var/www/html && \
     chmod -R 755 /var/www/html
 
 # Health check script
-RUN echo '#!/bin/sh' > /health-check.sh && \
-    echo 'curl -f http://localhost/ || exit 1' >> /health-check.sh && \
-    chmod +x /health-check.sh
+COPY <<EOF /health-check.sh
+#!/bin/sh
+curl -f http://localhost/ || exit 1
+EOF
+RUN chmod +x /health-check.sh
 
 # Expose port
 EXPOSE 80
