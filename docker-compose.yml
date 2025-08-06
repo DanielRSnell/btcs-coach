@@ -7,7 +7,7 @@ services:
       - APP_NAME=BTCS Coach
       - APP_ENV=production
       - APP_DEBUG=false
-      - APP_URL=http://localhost
+      - APP_URL=${APP_URL:-http://localhost}
       - DB_CONNECTION=sqlite
       - DB_DATABASE=/var/www/html/database/database.sqlite
       - MAIL_MAILER=log
@@ -17,8 +17,8 @@ services:
     volumes:
       - app_storage:/var/www/html/storage
       - app_database:/var/www/html/database
-    expose:
-      - "80"
+    ports:
+      - "80:80"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/"]
