@@ -3,7 +3,7 @@ import AppLayout from "@/layouts/app-layout";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Clock, BookOpen, Target, Users } from "lucide-react";
+import { BookOpen, Target, Users } from "lucide-react";
 
 interface Module {
     id: number;
@@ -39,11 +39,11 @@ const difficultyColors = {
 export default function Modules({ modules }: ModulesPageProps) {
     return (
         <AppLayout>
-            <Head title="Learning Modules" />
+            <Head title="Coaching Modules" />
             
             <div className="space-y-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Learning Modules</h1>
+                    <h1 className="text-3xl font-bold text-gray-900">Coaching Modules</h1>
                     <p className="text-gray-600 mt-2">
                         Explore our comprehensive coaching and training modules designed to accelerate your professional development.
                     </p>
@@ -68,11 +68,6 @@ export default function Modules({ modules }: ModulesPageProps) {
                             </CardHeader>
                             
                             <CardContent className="flex-1 space-y-4">
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <Clock className="h-4 w-4" />
-                                    <span>{module.estimated_duration} minutes</span>
-                                </div>
-
                                 {module.topics && module.topics.length > 0 && (
                                     <div>
                                         <div className="flex items-center gap-2 mb-2">
@@ -129,7 +124,7 @@ export default function Modules({ modules }: ModulesPageProps) {
                         <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
                         <h3 className="mt-2 text-sm font-medium text-gray-900">No modules available</h3>
                         <p className="mt-1 text-sm text-gray-500">
-                            Check back later for new learning modules.
+                            Check back later for new coaching modules.
                         </p>
                     </div>
                 )}
