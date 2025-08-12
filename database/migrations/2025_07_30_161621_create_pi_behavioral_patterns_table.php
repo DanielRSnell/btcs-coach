@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('pi_behavioral_patterns', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('code', 10);
+            $table->string('code', 20);
             $table->text('description');
             $table->json('behavioral_drives'); // A, B, C, D scores
             $table->text('strengths');

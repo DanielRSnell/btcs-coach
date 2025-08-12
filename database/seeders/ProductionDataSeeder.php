@@ -60,7 +60,7 @@ class ProductionDataSeeder extends Seeder
             ],
             [
                 'name' => 'Victor Morales',
-                'email' => 'victor@umbral.ai',
+                'email' => 'victor@hgfenton.com',
                 'password' => Hash::make('password'), // password
                 'role' => 'admin',
                 'email_verified_at' => '2025-08-06 03:25:29',
@@ -228,7 +228,7 @@ class ProductionDataSeeder extends Seeder
         $captainPattern = PiBehavioralPattern::where('code', 'CAPTAIN')->first();
         
         if ($persuaderPattern) {
-            $createdUsers['victor@umbral.ai']->update(['pi_behavioral_pattern_id' => $persuaderPattern->id]);
+            $createdUsers['victor@hgfenton.com']->update(['pi_behavioral_pattern_id' => $persuaderPattern->id]);
         }
         
         if ($captainPattern) {
@@ -238,9 +238,9 @@ class ProductionDataSeeder extends Seeder
         // Create all current modules
         $modules = [
             [
-                'title' => 'Factual & Policy Retrieval',
+                'title' => 'Factual & Knowledge Retrieval',
                 'description' => 'Demonstrate the agent\'s reliability for finding specific, objective information from the knowledge base.',
-                'slug' => 'factual-policy-retrieval',
+                'slug' => 'factual-knowledge-retrieval',
                 'type' => 'coaching',
                 'topics' => ['Company policies', 'Employee benefits', 'Internal processes', 'Employee handbook', 'Knowledge base retrieval'],
                 'learning_objectives' => 'Test the agent\'s ability to accurately retrieve and summarize company policies, benefits, and procedures from documentation.',
@@ -350,7 +350,7 @@ class ProductionDataSeeder extends Seeder
         }
         
         // Assign some modules to Victor (Persuader profile)
-        $victorUser = $createdUsers['victor@umbral.ai'];
+        $victorUser = $createdUsers['victor@hgfenton.com'];
         $victorModules = ['personalization-predictive-index', 'core-coaching-scenarios', 'advanced-team-culture-application'];
         foreach ($victorModules as $moduleSlug) {
             if (isset($createdModules[$moduleSlug]) && !$victorUser->accessibleModules()->where('module_id', $createdModules[$moduleSlug]->id)->exists()) {
@@ -494,7 +494,7 @@ class ProductionDataSeeder extends Seeder
             ],
             // Victor's Action Items (Persuader profile)
             [
-                'user_id' => $createdUsers['victor@umbral.ai']->id,
+                'user_id' => $createdUsers['victor@hgfenton.com']->id,
                 'module_id' => $createdModules['personalization-predictive-index']->id,
                 'title' => 'Review Personal PI Persuader Profile',
                 'description' => 'Study Persuader behavioral traits and apply insights to current team interactions.',
@@ -507,7 +507,7 @@ class ProductionDataSeeder extends Seeder
                 'updated_at' => '2025-08-08 10:30:00',
             ],
             [
-                'user_id' => $createdUsers['victor@umbral.ai']->id,
+                'user_id' => $createdUsers['victor@hgfenton.com']->id,
                 'module_id' => $createdModules['core-coaching-scenarios']->id,
                 'title' => 'Practice Motivational Communication Techniques',
                 'description' => 'Apply persuasive communication skills learned in coaching scenarios with team members.',
@@ -607,7 +607,7 @@ class ProductionDataSeeder extends Seeder
             ],
             // Victor's Achievements (Persuader profile)
             [
-                'user_id' => $createdUsers['victor@umbral.ai']->id,
+                'user_id' => $createdUsers['victor@hgfenton.com']->id,
                 'module_id' => $createdModules['personalization-predictive-index']->id,
                 'title' => 'Persuader Insights',
                 'description' => 'Successfully applied Persuader profile insights to team motivation.',
