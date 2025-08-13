@@ -238,7 +238,8 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
                                 },
                                 assistant: {
                                     // Generate a date string to avoid caching
-                                    stylesheet: '/voiceflow.css?v=' + new Date().toISOString().replace(/[:.]/g, '-')
+                                    stylesheet: '/voiceflow.css?v=' + new Date().toISOString().replace(/[:.]/g, '-'),
+                                    persistance: 'memory',
                                 },
                                 autostart: true,
                                 launch: {
