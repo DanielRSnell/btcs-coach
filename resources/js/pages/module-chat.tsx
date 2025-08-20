@@ -236,7 +236,7 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
                 difficulty: module.difficulty
             }
         }),
-        user_name: user?.name || 'Anonymous',
+        user_name: user?.name ? user.name.split(' ')[0] : 'Anonymous',
         module: module.title
     };
 
