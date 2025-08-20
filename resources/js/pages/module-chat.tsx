@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Clock, BookOpen, Target, CheckCircle, Circle, AlertCircle } from "lucide-react";
+import { ArrowLeft, Clock, BookOpen, Target, CheckCircle, Circle, AlertCircle, MessageCircle, Mic } from "lucide-react";
 import { Link, router, usePage } from "@inertiajs/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import {
     Dialog,
@@ -17,7 +17,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 
-// TypeScript declaration for Voiceflow global object
+// TypeScript declarations for global objects
 declare global {
     interface Window {
         voiceflow: {
@@ -26,6 +26,24 @@ declare global {
                 destroy: () => void;
             };
         };
+    }
+    
+    namespace JSX {
+        interface IntrinsicElements {
+            'elevenlabs-convai': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+                'agent-id'?: string;
+                'server-location'?: string;
+                'variant'?: string;
+                'avatar-image-url'?: string;
+                'avatar-orb-color-1'?: string;
+                'avatar-orb-color-2'?: string;
+                'action-text'?: string;
+                'start-call-text'?: string;
+                'listening-text'?: string;
+                'dynamic-variables'?: string;
+                style?: React.CSSProperties | string;
+            };
+        }
     }
 }
 
@@ -116,6 +134,8 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
     const [selectedActionItem, setSelectedActionItem] = useState<ActionItem | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [activeChatTab, setActiveChatTab] = useState<'voiceflow' | 'elevenlabs'>('voiceflow');
+    const elevenLabsRef = useRef<HTMLElement>(null);
     const { props } = usePage();
     const successMessage = (props as any).flash?.success;
 
@@ -164,6 +184,66 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
             }
         });
     };
+    // Initialize ElevenLabs widget when component mounts
+    useEffect(() => {
+        // Add ElevenLabs script if not already present
+        if (!document.querySelector('script[src*="convai-widget-embed"]')) {
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/@elevenlabs/convai-widget-embed';
+            script.async = true;
+            script.type = 'text/javascript';
+            document.head.appendChild(script);
+        }
+    }, []);
+
+    // Prepare dynamic variables for ElevenLabs
+    const elevenLabsVariables = {
+        user_profile: JSON.stringify({
+            id: user?.id || 0,
+            name: user?.name || 'Anonymous',
+            email: user?.email || '',
+            role: user?.role || 'member',
+            pi_behavioral_pattern_id: user?.pi_behavioral_pattern_id || null,
+            pi_behavioral_pattern: user?.pi_behavioral_pattern || null,
+            pi_raw_scores: user?.pi_raw_scores || null,
+            pi_assessed_at: user?.pi_assessed_at || null,
+            pi_notes: user?.pi_notes || null,
+            pi_profile: user?.pi_profile || null,
+            has_pi_assessment: user?.has_pi_assessment || false,
+            has_pi_profile: user?.has_pi_profile || false
+        }),
+        module_context: JSON.stringify({
+            route: {
+                name: 'modules.chat',
+                path: `/modules/${module.slug}/chat`,
+                params: {
+                    slug: module.slug
+                }
+            },
+            module: {
+                id: module.id,
+                title: module.title,
+                description: module.description,
+                goal: module.goal,
+                type: module.type,
+                slug: module.slug,
+                topics: module.topics,
+                topics_string: module.topics.join(', '),
+                sample_questions: module.sample_questions,
+                learning_objectives: module.learning_objectives,
+                expected_outcomes: module.expected_outcomes,
+                estimated_duration: module.estimated_duration,
+                difficulty: module.difficulty
+            }
+        }),
+        user_name: user?.name || 'Anonymous',
+        module: module.title
+    };
+
+    // Debug logging
+    console.log('🚀 ElevenLabs Variables Structure:', elevenLabsVariables);
+    console.log('🚀 ElevenLabs Final JSON:', JSON.stringify(elevenLabsVariables));
+
     useEffect(() => {
         // Initialize Voiceflow when component mounts
         const initializeVoiceflow = () => {
@@ -174,8 +254,9 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
                 console.log('Chat element found:', chatElement);
                 
                 // Use the provided Voiceflow embed script
-                (function(d, t) {
-                    var v = d.createElement(t), s = d.getElementsByTagName(t)[0];
+                (function(d: Document, t: string) {
+                    const v = d.createElement(t) as HTMLScriptElement;
+                    const s = d.getElementsByTagName(t)[0];
                     v.onload = function() {
                         console.log('Voiceflow script loaded, window.voiceflow:', window.voiceflow);
                         if (window.voiceflow && window.voiceflow.chat) {
@@ -286,7 +367,7 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
                     v.src = "https://cdn.voiceflow.com/widget-next/bundle.mjs";
                     v.type = "text/javascript";
                     console.log('Adding Voiceflow script to DOM...');
-                    s.parentNode.insertBefore(v, s);
+                    s.parentNode?.insertBefore(v, s);
                 })(document, 'script');
             }, 100); // 100ms delay to ensure DOM is ready
             
@@ -343,11 +424,43 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
 
                     {/* Chat Interface Container - Full Height */}
                     <Card className="flex-1 flex flex-col py-0" style={{ minHeight: '500px', maxHeight: 'calc(100vh - 280px)' }}>
-                        <CardContent className="p-0 flex-1">
-                            {/* Voiceflow Chat Container */}
+                        <CardHeader className="py-3 px-4 border-b">
+                            {/* Chat Widget Tabs */}
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => setActiveChatTab('voiceflow')}
+                                        className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                            activeChatTab === 'voiceflow'
+                                                ? 'bg-blue-100 text-blue-700 border-blue-200 border'
+                                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        <MessageCircle className="h-4 w-4" />
+                                        Text Chat
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveChatTab('elevenlabs')}
+                                        className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                            activeChatTab === 'elevenlabs'
+                                                ? 'bg-green-100 text-green-700 border-green-200 border'
+                                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        <Mic className="h-4 w-4" />
+                                        Voice Chat
+                                    </button>
+                                </div>
+                                <div className="text-sm text-gray-500 ml-auto">
+                                    {activeChatTab === 'voiceflow' ? 'Text-based coaching conversation' : 'Voice-based AI coaching'}
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-0 flex-1 relative">
+                            {/* Voiceflow Chat Container - Original behavior */}
                             <div 
                                 id="btcs-chat" 
-                                className="w-full h-full"
+                                className={`w-full h-full ${activeChatTab === 'voiceflow' ? 'block' : 'hidden'}`}
                                 style={{ maxHeight: 'calc(100vh - 200px)' }}
                             >
                                 {/* This div will be populated by Voiceflow's embed script */}
@@ -361,6 +474,25 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
                                     </div>
                                 </div>
                             </div>
+                            
+                            {/* ElevenLabs Chat Container - Only show when selected */}
+                            {activeChatTab === 'elevenlabs' && (
+                                <div className="w-full h-full">
+                                    <div className="w-full h-full relative">
+                                        <elevenlabs-convai 
+                                            ref={elevenLabsRef}
+                                            agent-id="agent_0901k31ke64mf0w8me1gdwygb7ze"
+                                            dynamic-variables={JSON.stringify(elevenLabsVariables)}
+                                            style={{
+                                                position: 'relative',
+                                                width: '100%',
+                                                height: '100%',
+                                                display: 'block'
+                                            }}
+                                        ></elevenlabs-convai>
+                                    </div>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>
