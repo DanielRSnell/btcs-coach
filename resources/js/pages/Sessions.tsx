@@ -173,7 +173,7 @@ export default function Sessions({ user, sessions }: SessionsProps) {
         <AppLayout>
             <Head title="Sessions" />
             
-            <div className="flex h-[calc(100vh-8rem)] gap-6">
+            <div className="flex h-[calc(100vh-8rem)] gap-6 py-6">
                 {/* Sessions Sidebar */}
                 <div className="w-80 flex-shrink-0">
                     <Card className="h-full">
