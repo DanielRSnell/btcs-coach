@@ -258,7 +258,7 @@ export default function Sessions({ user, sessions }: SessionsProps) {
                             >
                                 <div className="flex items-center justify-center h-full bg-gray-50">
                                     <div className="text-center">
-                                        <MessageCircle className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                                        <MessageCircle className="h-8 w-8 mx-auto mb-4 text-gray-300" />
                                         <p className="text-gray-500">Loading chat interface...</p>
                                     </div>
                                 </div>
