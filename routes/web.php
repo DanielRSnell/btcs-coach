@@ -4,6 +4,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\ActionItemController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\SessionsController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -12,7 +13,13 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Redirect dashboard to sessions
+    Route::get('dashboard', function () {
+        return redirect()->route('sessions');
+    })->name('dashboard');
+    
+    // Sessions route - main landing page after login
+    Route::get('sessions', [SessionsController::class, 'index'])->name('sessions');
     
     // Debug route for Railway deployment
     Route::get('debug/assets', function() {
