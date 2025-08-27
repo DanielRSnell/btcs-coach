@@ -192,7 +192,7 @@ export default function Sessions({ user, sessions }: SessionsProps) {
                                     <div className="h-full flex flex-col items-center justify-center p-6 text-center">
                                         <div className="flex flex-col items-center space-y-4">
                                             <div className="p-6 bg-gray-50 rounded-full">
-                                                <MessageCircle className="h-16 w-16 text-gray-300" />
+                                                <MessageCircle className="h-10 w-10 text-gray-300" />
                                             </div>
                                             <div className="space-y-2">
                                                 <h3 className="text-lg font-semibold text-gray-700">No active sessions yet</h3>
