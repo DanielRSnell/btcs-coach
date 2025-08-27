@@ -1,0 +1,21 @@
+.vfrc-header {
+    display: none!important;
+}
+
+.vfrc-assistant-info {
+    display: none!important;
+}
+
+.vfrc-footer--watermark {
+    opacity: 0!important;
+}
+
+/* Hide scorllbar on vfrc-chat--dialog */
+.vfrc-chat--dialog::-webkit-scrollbar {
+    display: none;
+}
+
+.vfrc-chat--dialog {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}

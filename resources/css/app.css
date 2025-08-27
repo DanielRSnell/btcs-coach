@@ -130,6 +130,10 @@
     --sidebar-ring: oklch(0.55 0.08 249.12);
 }
 
+@view-transition {
+    navigation: auto;
+}
+
 @layer base {
     * {
         @apply border-border;

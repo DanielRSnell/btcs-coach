@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Filament\Models\Contracts\FilamentUser;
 
 class User extends Authenticatable implements FilamentUser
@@ -29,7 +30,6 @@ class User extends Authenticatable implements FilamentUser
         'pi_assessor_name',
         'pi_notes',
         'pi_profile',
-        'sessions',
     ];
 
     /**
@@ -55,7 +55,6 @@ class User extends Authenticatable implements FilamentUser
             'pi_raw_scores' => 'array',
             'pi_assessed_at' => 'datetime',
             'pi_profile' => 'array',
-            'sessions' => 'array',
         ];
     }
 
@@ -198,59 +197,140 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
+     * Relationship: Get all Voiceflow sessions for the user.
+     */
+    public function voiceflowSessions(): HasMany
+    {
+        return $this->hasMany(\App\Models\VoiceflowSession::class);
+    }
+
+    /**
      * Get all Voiceflow sessions for the user.
      */
     public function getSessions(): ?array
     {
-        return $this->sessions;
+        $sessionModels = $this->voiceflowSessions()->orderBy('session_updated_at', 'desc')->get();
+        
+        if ($sessionModels->isEmpty()) {
+            return [];
+        }
+        
+        // Convert to the format expected by the frontend
+        // Key by session_id (userID) since each chat session has a unique userID
+        // This ensures we show ALL sessions, not just one per project_id
+        return $sessionModels->keyBy('session_id')->map(function ($session) {
+            return [
+                'session_id' => $session->session_id, // Voiceflow userID (the actual unique identifier)
+                'project_id' => $session->project_id, // localStorage key (might be same for multiple sessions)
+                'value' => $session->value_data,
+                'status' => $session->status,
+                'source' => $session->source,
+                'created_at' => $session->session_created_at?->toISOString(),
+                'updated_at' => $session->session_updated_at?->toISOString(),
+            ];
+        })->toArray();
     }
 
     /**
-     * Get a specific Voiceflow session by session ID.
+     * Get a specific Voiceflow session by project ID and optionally userID.
+     * 
+     * @param string $projectId The Voiceflow project ID (localStorage key)
+     * @param string|null $voiceflowUserID Optional Voiceflow userID for more precise lookup
      */
-    public function getSession(string $sessionId): ?array
+    public function getSession(string $projectId, ?string $voiceflowUserID = null): ?array
     {
-        return $this->sessions[$sessionId] ?? null;
+        $query = $this->voiceflowSessions()->where('project_id', $projectId);
+        
+        if ($voiceflowUserID) {
+            $query->where('session_id', $voiceflowUserID);
+        }
+        
+        $sessionModel = $query->first();
+        
+        if (!$sessionModel) {
+            return null;
+        }
+        
+        return [
+            'session_id' => $sessionModel->session_id, // This is the Voiceflow userID
+            'project_id' => $sessionModel->project_id, // This is the localStorage key
+            'value' => $sessionModel->value_data,
+            'status' => $sessionModel->status,
+            'source' => $sessionModel->source,
+            'created_at' => $sessionModel->session_created_at?->toISOString(),
+            'updated_at' => $sessionModel->session_updated_at?->toISOString(),
+        ];
     }
 
     /**
      * Set or update a Voiceflow session.
+     * 
+     * @param string $projectId The Voiceflow project ID (localStorage key like '686331bc96acfa1dd62f6fd5')
+     * @param array $sessionData The session data containing userID and other info
      */
-    public function setSession(string $sessionId, array $sessionData): void
+    public function setSession(string $projectId, array $sessionData): void
     {
-        $sessions = $this->sessions ?? [];
-        $sessions[$sessionId] = [
-            'session_id' => $sessionId,
-            'last_turn' => $sessionData['last_turn'] ?? null,
-            'created_at' => $sessionData['created_at'] ?? now()->toISOString(),
-            'updated_at' => now()->toISOString(),
-        ];
-        $this->sessions = $sessions;
+        $valueData = $sessionData['last_turn'] ?? $sessionData;
+        
+        // Extract the userID from the value data - this is the actual session identifier in Voiceflow
+        $voiceflowUserID = $valueData['userID'] ?? null;
+        
+        if (!$voiceflowUserID) {
+            throw new \InvalidArgumentException('Session data must contain userID from Voiceflow');
+        }
+        
+        // Use the database relationship - session_id is now the Voiceflow userID, project_id is the localStorage key
+        $this->voiceflowSessions()->updateOrCreate(
+            ['session_id' => $voiceflowUserID, 'project_id' => $projectId],
+            [
+                'value_data' => $valueData,
+                'status' => $valueData['status'] ?? 'ACTIVE',
+                'source' => $sessionData['source'] ?? 'unknown',
+                'session_created_at' => isset($sessionData['created_at']) ? \Carbon\Carbon::parse($sessionData['created_at']) : now(),
+                'session_updated_at' => now(),
+            ]
+        );
     }
 
     /**
-     * Update the last turn for a specific session.
+     * Update the value data for a specific session (when localStorage changes).
+     * 
+     * @param string $projectId The Voiceflow project ID (localStorage key)
+     * @param array $valueData The updated localStorage value data
      */
-    public function updateSessionLastTurn(string $sessionId, array $lastTurn): void
+    public function updateSessionLastTurn(string $projectId, array $valueData): void
     {
-        $sessions = $this->sessions ?? [];
-        if (isset($sessions[$sessionId])) {
-            $sessions[$sessionId]['last_turn'] = $lastTurn;
-            $sessions[$sessionId]['updated_at'] = now()->toISOString();
-            $this->sessions = $sessions;
+        // Extract the userID from the updated value data
+        $voiceflowUserID = $valueData['userID'] ?? null;
+        
+        if (!$voiceflowUserID) {
+            // If no userID in the new data, try to find the session by project_id alone
+            $session = $this->voiceflowSessions()->where('project_id', $projectId)->first();
+        } else {
+            // Find by both userID and project_id for accuracy
+            $session = $this->voiceflowSessions()->where('session_id', $voiceflowUserID)->where('project_id', $projectId)->first();
+        }
+        
+        if ($session) {
+            $session->updateValueData($valueData);
         }
     }
 
     /**
      * Remove a Voiceflow session.
+     * 
+     * @param string $projectId The Voiceflow project ID (localStorage key)
+     * @param string|null $voiceflowUserID Optional Voiceflow userID for more precise deletion
      */
-    public function removeSession(string $sessionId): void
+    public function removeSession(string $projectId, ?string $voiceflowUserID = null): void
     {
-        $sessions = $this->sessions ?? [];
-        if (isset($sessions[$sessionId])) {
-            unset($sessions[$sessionId]);
-            $this->sessions = $sessions;
+        $query = $this->voiceflowSessions()->where('project_id', $projectId);
+        
+        if ($voiceflowUserID) {
+            $query->where('session_id', $voiceflowUserID);
         }
+        
+        $query->delete();
     }
 
     /**
@@ -258,7 +338,8 @@ class User extends Authenticatable implements FilamentUser
      */
     public function hasActiveSessions(): bool
     {
-        return !empty($this->sessions);
+        // Use the database relationship
+        return $this->voiceflowSessions()->exists();
     }
 
     /**
@@ -266,17 +347,20 @@ class User extends Authenticatable implements FilamentUser
      */
     public function getMostRecentSession(): ?array
     {
-        if (empty($this->sessions)) {
-            return null;
+        // Use the database relationship with proper ordering
+        $sessionModel = $this->voiceflowSessions()->recent()->first();
+        
+        if ($sessionModel) {
+            return [
+                'session_id' => $sessionModel->session_id,
+                'value' => $sessionModel->value_data,
+                'status' => $sessionModel->status,
+                'source' => $sessionModel->source,
+                'created_at' => $sessionModel->session_created_at?->toISOString(),
+                'updated_at' => $sessionModel->session_updated_at?->toISOString(),
+            ];
         }
-
-        $sessions = $this->sessions;
-        uasort($sessions, function ($a, $b) {
-            $timeA = $a['updated_at'] ?? $a['created_at'] ?? '';
-            $timeB = $b['updated_at'] ?? $b['created_at'] ?? '';
-            return strcmp($timeB, $timeA);
-        });
-
-        return reset($sessions);
+        
+        return null;
     }
 }

@@ -12,14 +12,25 @@ Route::get('/', function () {
     return redirect()->route('login');
 })->name('home');
 
+// Session API routes with JSON error responses (outside auth middleware to use custom middleware)
+Route::prefix('api/sessions')->middleware('api.auth')->group(function () {
+    Route::post('register', [SessionsController::class, 'registerSession'])
+        ->name('api.sessions.register');
+    Route::post('update', [SessionsController::class, 'updateSession'])
+        ->name('api.sessions.update');
+    Route::post('check', [SessionsController::class, 'checkSession'])
+        ->name('api.sessions.check');
+});
+
 Route::middleware(['auth', 'verified'])->group(function () {
     // Redirect dashboard to sessions
     Route::get('dashboard', function () {
         return redirect()->route('sessions');
     })->name('dashboard');
     
-    // Sessions route - main landing page after login
+    // Sessions routes - main landing page after login
     Route::get('sessions', [SessionsController::class, 'index'])->name('sessions');
+    Route::get('sessions/{sessionId}', [SessionsController::class, 'show'])->name('sessions.show');
     
     // Debug route for Railway deployment
     Route::get('debug/assets', function() {

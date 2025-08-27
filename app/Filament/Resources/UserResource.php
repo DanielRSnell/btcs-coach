@@ -222,23 +222,66 @@ class UserResource extends Resource
                 
                 Forms\Components\Section::make('Voiceflow Sessions')
                     ->schema([
-                        Forms\Components\Placeholder::make('sessions_info')
-                            ->label('Active Sessions')
+                        Forms\Components\Placeholder::make('sessions_summary')
+                            ->label('Sessions Summary')
                             ->content(function ($record) {
-                                if (!$record || !$record->sessions) {
+                                if (!$record) {
                                     return 'No active sessions';
                                 }
                                 
-                                $sessions = $record->sessions;
-                                $sessionList = collect($sessions)->map(function ($session, $sessionId) {
-                                    $createdAt = isset($session['created_at']) ? \Carbon\Carbon::parse($session['created_at'])->format('M j, Y g:i A') : 'Unknown';
-                                    $updatedAt = isset($session['updated_at']) ? \Carbon\Carbon::parse($session['updated_at'])->format('M j, Y g:i A') : 'Unknown';
-                                    $status = $session['last_turn']['status'] ?? 'Unknown';
+                                // Use efficient database queries instead of JSON column
+                                $totalSessions = $record->voiceflowSessions()->count();
+                                $activeSessions = $record->voiceflowSessions()->active()->count();
+                                $mostRecentSession = $record->voiceflowSessions()->recent()->first();
+                                
+                                if ($totalSessions === 0) {
+                                    return 'No active sessions';
+                                }
+                                
+                                $lastActivity = $mostRecentSession 
+                                    ? ($mostRecentSession->session_updated_at ?? $mostRecentSession->updated_at)->diffForHumans() 
+                                    : 'Never';
+                                
+                                return "📊 **Total Sessions:** {$totalSessions} | 🟢 **Active:** {$activeSessions} | ⏰ **Last Activity:** {$lastActivity}";
+                            })
+                            ->columnSpanFull(),
+
+                        Forms\Components\Placeholder::make('sessions_detail')
+                            ->label('Session Details')
+                            ->content(function ($record) {
+                                if (!$record) {
+                                    return 'No active sessions';
+                                }
+                                
+                                // Use database relationship for better performance
+                                $sessions = $record->voiceflowSessions()->recent()->get();
+                                
+                                if ($sessions->isEmpty()) {
+                                    return 'No active sessions';
+                                }
+                                
+                                $sessionList = $sessions->map(function ($session) {
+                                    $createdAt = $session->session_created_at 
+                                        ? $session->session_created_at->format('M j, Y g:i A') 
+                                        : ($session->created_at->format('M j, Y g:i A'));
+                                    $updatedAt = $session->session_updated_at 
+                                        ? $session->session_updated_at->format('M j, Y g:i A') 
+                                        : ($session->updated_at->format('M j, Y g:i A'));
                                     
-                                    return "• **{$sessionId}**\n  Status: {$status}\n  Created: {$createdAt}\n  Updated: {$updatedAt}\n";
+                                    $dataSize = $session->getDataSize();
+                                    $statusIcon = $session->status === 'ACTIVE' ? '🟢' : '🔴';
+                                    $sourceIcon = match($session->source) {
+                                        'localStorage_sync' => '💾',
+                                        'localStorage_change' => '🔄',
+                                        'migrated_from_legacy_json' => '📦',
+                                        'migrated_from_json' => '📋',
+                                        default => '📝'
+                                    };
+                                    
+                                    return "**{$statusIcon} {$session->session_id}**\n  📍 Status: {$session->status}\n  {$sourceIcon} Source: {$session->source}\n  💾 Data: {$dataSize} bytes\n  📅 Created: {$createdAt}\n  🕐 Updated: {$updatedAt}\n";
                                 })->join("\n");
                                 
-                                return new \Illuminate\Support\HtmlString("<div style='white-space: pre-line; font-family: monospace;'>{$sessionList}</div>");
+                                return new \Illuminate\Support\HtmlString("<div style='white-space: pre-line; font-family: monospace; font-size: 13px;'>{$sessionList}</div>");
                             })
                             ->columnSpanFull(),
                         
@@ -248,17 +291,39 @@ class UserResource extends Resource
                             ->disabled()
                             ->columnSpanFull()
                             ->formatStateUsing(function ($record) {
-                                if (!$record || !$record->sessions) {
+                                if (!$record) {
                                     return 'No sessions data';
                                 }
-                                return json_encode($record->sessions, JSON_PRETTY_PRINT);
+                                
+                                // Get sessions from database and format as JSON
+                                $sessions = $record->voiceflowSessions()->get();
+                                
+                                if ($sessions->isEmpty()) {
+                                    return 'No sessions data';
+                                }
+                                
+                                $sessionsArray = $sessions->map(function ($session) {
+                                    return [
+                                        'id' => $session->id,
+                                        'session_id' => $session->session_id,
+                                        'value_data' => $session->value_data,
+                                        'status' => $session->status,
+                                        'source' => $session->source,
+                                        'session_created_at' => $session->session_created_at?->toISOString(),
+                                        'session_updated_at' => $session->session_updated_at?->toISOString(),
+                                        'created_at' => $session->created_at->toISOString(),
+                                        'updated_at' => $session->updated_at->toISOString(),
+                                    ];
+                                })->toArray();
+                                
+                                return json_encode($sessionsArray, JSON_PRETTY_PRINT);
                             })
                             ->dehydrated(false)
-                            ->visible(fn ($record) => $record && !empty($record->sessions)),
+                            ->visible(fn ($record) => $record && $record->voiceflowSessions()->exists()),
                     ])
                     ->collapsible()
                     ->collapsed()
-                    ->visible(fn ($record) => $record && !empty($record->sessions)),
+                    ->visible(fn ($record) => $record && $record->voiceflowSessions()->exists()),
             ]);
     }
 
@@ -307,31 +372,38 @@ class UserResource extends Resource
                     ->getStateUsing(fn ($record) => !is_null($record->pi_profile))
                     ->sortable()
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('sessions')
-                    ->label('Sessions')
+                Tables\Columns\TextColumn::make('voiceflow_sessions_count')
+                    ->label('Voiceflow Sessions')
                     ->getStateUsing(function ($record) {
-                        if (!$record->sessions) {
+                        $totalSessions = $record->voiceflowSessions()->count();
+                        if ($totalSessions === 0) {
                             return 'None';
                         }
-                        $count = count($record->sessions);
-                        $sessionIds = array_keys($record->sessions);
-                        $shortIds = array_map(fn($id) => substr($id, 0, 8) . '...', $sessionIds);
-                        return $count . ' (' . implode(', ', $shortIds) . ')';
+                        
+                        $activeSessions = $record->voiceflowSessions()->active()->count();
+                        return $activeSessions === $totalSessions ? "{$totalSessions} Active" : "{$activeSessions}/{$totalSessions} Active";
                     })
                     ->badge()
-                    ->color(fn ($state) => $state === 'None' ? 'gray' : 'success')
+                    ->color(function ($state, $record) {
+                        if ($state === 'None') return 'gray';
+                        
+                        $totalSessions = $record->voiceflowSessions()->count();
+                        $activeSessions = $record->voiceflowSessions()->active()->count();
+                        
+                        return $activeSessions === $totalSessions ? 'success' : ($activeSessions > 0 ? 'warning' : 'danger');
+                    })
                     ->tooltip(function ($record) {
-                        if (!$record->sessions) {
-                            return 'No active sessions';
+                        $sessions = $record->voiceflowSessions()->recent()->get();
+                        if ($sessions->isEmpty()) {
+                            return 'No Voiceflow sessions';
                         }
-                        $sessions = collect($record->sessions)->map(function ($session, $sessionId) {
-                            $status = $session['last_turn']['status'] ?? 'Unknown';
-                            $updatedAt = isset($session['updated_at']) 
-                                ? \Carbon\Carbon::parse($session['updated_at'])->diffForHumans() 
-                                : 'Unknown';
-                            return "{$sessionId}: {$status} (Updated: {$updatedAt})";
+                        
+                        $sessionInfo = $sessions->map(function ($session) {
+                            $updatedAt = $session->session_updated_at ? $session->session_updated_at->diffForHumans() : 'Unknown';
+                            return "{$session->session_id}: {$session->status} | {$session->source} (Updated: {$updatedAt})";
                         });
-                        return $sessions->join("\n");
+                        
+                        return $sessionInfo->take(5)->join("\n") . ($sessions->count() > 5 ? "\n... and " . ($sessions->count() - 5) . " more" : "");
                     })
                     ->sortable()
                     ->toggleable(),
@@ -372,12 +444,12 @@ class UserResource extends Resource
                 Tables\Filters\Filter::make('no_pi_profile')
                     ->query(fn (Builder $query): Builder => $query->whereNull('pi_profile'))
                     ->label('No PI Profile'),
-                Tables\Filters\Filter::make('has_sessions')
-                    ->query(fn (Builder $query): Builder => $query->whereNotNull('sessions'))
-                    ->label('Has Active Sessions'),
-                Tables\Filters\Filter::make('no_sessions')
-                    ->query(fn (Builder $query): Builder => $query->whereNull('sessions'))
-                    ->label('No Active Sessions'),
+                Tables\Filters\Filter::make('has_voiceflow_sessions')
+                    ->query(fn (Builder $query): Builder => $query->whereHas('voiceflowSessions'))
+                    ->label('Has Voiceflow Sessions'),
+                Tables\Filters\Filter::make('no_voiceflow_sessions')
+                    ->query(fn (Builder $query): Builder => $query->whereDoesntHave('voiceflowSessions'))
+                    ->label('No Voiceflow Sessions'),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
