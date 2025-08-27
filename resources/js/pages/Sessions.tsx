@@ -250,7 +250,7 @@ export default function Sessions({ user, sessions }: SessionsProps) {
 
                 {/* Main Chat Area */}
                 <div className="flex-1">
-                    <Card className="h-full">
+                    <Card className="h-full py-0">
                         <CardContent className="p-0 h-full">
                             <div 
                                 id="main-voiceflow-chat" 
