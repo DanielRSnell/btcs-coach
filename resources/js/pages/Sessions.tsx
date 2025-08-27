@@ -187,12 +187,26 @@ export default function Sessions({ user, sessions }: SessionsProps) {
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="p-0">
-                            <div className="h-[calc(100%-120px)] overflow-y-auto">
+                            <div className="h-full overflow-y-auto">
                                 {Object.keys(sessions).length === 0 ? (
-                                    <div className="p-6 text-center text-gray-500">
-                                        <MessageCircle className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                                        <p>No active sessions yet.</p>
-                                        <p className="text-sm mt-1">Start a conversation to create your first session!</p>
+                                    <div className="h-full flex flex-col items-center justify-center p-6 text-center">
+                                        <div className="flex flex-col items-center space-y-4">
+                                            <div className="p-6 bg-gray-50 rounded-full">
+                                                <MessageCircle className="h-16 w-16 text-gray-300" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <h3 className="text-lg font-semibold text-gray-700">No active sessions yet</h3>
+                                                <p className="text-sm text-gray-500 max-w-sm">
+                                                    Start a conversation in the chat area to begin your coaching journey and create your first session.
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center space-x-2 text-xs text-gray-400 mt-6">
+                                                <div className="flex items-center space-x-1">
+                                                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                                    <span>Ready to chat</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="p-4 space-y-3">
