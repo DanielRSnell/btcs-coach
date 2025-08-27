@@ -29,6 +29,7 @@ class User extends Authenticatable implements FilamentUser
         'pi_assessor_name',
         'pi_notes',
         'pi_profile',
+        'sessions',
     ];
 
     /**
@@ -54,6 +55,7 @@ class User extends Authenticatable implements FilamentUser
             'pi_raw_scores' => 'array',
             'pi_assessed_at' => 'datetime',
             'pi_profile' => 'array',
+            'sessions' => 'array',
         ];
     }
 
@@ -193,5 +195,88 @@ class User extends Authenticatable implements FilamentUser
     public function getPiProfileSection(string $section): ?array
     {
         return $this->pi_profile[$section] ?? null;
+    }
+
+    /**
+     * Get all Voiceflow sessions for the user.
+     */
+    public function getSessions(): ?array
+    {
+        return $this->sessions;
+    }
+
+    /**
+     * Get a specific Voiceflow session by session ID.
+     */
+    public function getSession(string $sessionId): ?array
+    {
+        return $this->sessions[$sessionId] ?? null;
+    }
+
+    /**
+     * Set or update a Voiceflow session.
+     */
+    public function setSession(string $sessionId, array $sessionData): void
+    {
+        $sessions = $this->sessions ?? [];
+        $sessions[$sessionId] = [
+            'session_id' => $sessionId,
+            'last_turn' => $sessionData['last_turn'] ?? null,
+            'created_at' => $sessionData['created_at'] ?? now()->toISOString(),
+            'updated_at' => now()->toISOString(),
+        ];
+        $this->sessions = $sessions;
+    }
+
+    /**
+     * Update the last turn for a specific session.
+     */
+    public function updateSessionLastTurn(string $sessionId, array $lastTurn): void
+    {
+        $sessions = $this->sessions ?? [];
+        if (isset($sessions[$sessionId])) {
+            $sessions[$sessionId]['last_turn'] = $lastTurn;
+            $sessions[$sessionId]['updated_at'] = now()->toISOString();
+            $this->sessions = $sessions;
+        }
+    }
+
+    /**
+     * Remove a Voiceflow session.
+     */
+    public function removeSession(string $sessionId): void
+    {
+        $sessions = $this->sessions ?? [];
+        if (isset($sessions[$sessionId])) {
+            unset($sessions[$sessionId]);
+            $this->sessions = $sessions;
+        }
+    }
+
+    /**
+     * Check if user has any active sessions.
+     */
+    public function hasActiveSessions(): bool
+    {
+        return !empty($this->sessions);
+    }
+
+    /**
+     * Get the most recent session.
+     */
+    public function getMostRecentSession(): ?array
+    {
+        if (empty($this->sessions)) {
+            return null;
+        }
+
+        $sessions = $this->sessions;
+        uasort($sessions, function ($a, $b) {
+            $timeA = $a['updated_at'] ?? $a['created_at'] ?? '';
+            $timeB = $b['updated_at'] ?? $b['created_at'] ?? '';
+            return strcmp($timeB, $timeA);
+        });
+
+        return reset($sessions);
     }
 }

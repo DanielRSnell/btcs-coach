@@ -219,6 +219,46 @@ class UserResource extends Resource
                     ])
                     ->collapsible()
                     ->collapsed(),
+                
+                Forms\Components\Section::make('Voiceflow Sessions')
+                    ->schema([
+                        Forms\Components\Placeholder::make('sessions_info')
+                            ->label('Active Sessions')
+                            ->content(function ($record) {
+                                if (!$record || !$record->sessions) {
+                                    return 'No active sessions';
+                                }
+                                
+                                $sessions = $record->sessions;
+                                $sessionList = collect($sessions)->map(function ($session, $sessionId) {
+                                    $createdAt = isset($session['created_at']) ? \Carbon\Carbon::parse($session['created_at'])->format('M j, Y g:i A') : 'Unknown';
+                                    $updatedAt = isset($session['updated_at']) ? \Carbon\Carbon::parse($session['updated_at'])->format('M j, Y g:i A') : 'Unknown';
+                                    $status = $session['last_turn']['status'] ?? 'Unknown';
+                                    
+                                    return "• **{$sessionId}**\n  Status: {$status}\n  Created: {$createdAt}\n  Updated: {$updatedAt}\n";
+                                })->join("\n");
+                                
+                                return new \Illuminate\Support\HtmlString("<div style='white-space: pre-line; font-family: monospace;'>{$sessionList}</div>");
+                            })
+                            ->columnSpanFull(),
+                        
+                        Forms\Components\Textarea::make('sessions_raw')
+                            ->label('Raw Sessions Data (Read Only)')
+                            ->rows(10)
+                            ->disabled()
+                            ->columnSpanFull()
+                            ->formatStateUsing(function ($record) {
+                                if (!$record || !$record->sessions) {
+                                    return 'No sessions data';
+                                }
+                                return json_encode($record->sessions, JSON_PRETTY_PRINT);
+                            })
+                            ->dehydrated(false)
+                            ->visible(fn ($record) => $record && !empty($record->sessions)),
+                    ])
+                    ->collapsible()
+                    ->collapsed()
+                    ->visible(fn ($record) => $record && !empty($record->sessions)),
             ]);
     }
 
@@ -267,6 +307,34 @@ class UserResource extends Resource
                     ->getStateUsing(fn ($record) => !is_null($record->pi_profile))
                     ->sortable()
                     ->toggleable(),
+                Tables\Columns\TextColumn::make('sessions')
+                    ->label('Sessions')
+                    ->getStateUsing(function ($record) {
+                        if (!$record->sessions) {
+                            return 'None';
+                        }
+                        $count = count($record->sessions);
+                        $sessionIds = array_keys($record->sessions);
+                        $shortIds = array_map(fn($id) => substr($id, 0, 8) . '...', $sessionIds);
+                        return $count . ' (' . implode(', ', $shortIds) . ')';
+                    })
+                    ->badge()
+                    ->color(fn ($state) => $state === 'None' ? 'gray' : 'success')
+                    ->tooltip(function ($record) {
+                        if (!$record->sessions) {
+                            return 'No active sessions';
+                        }
+                        $sessions = collect($record->sessions)->map(function ($session, $sessionId) {
+                            $status = $session['last_turn']['status'] ?? 'Unknown';
+                            $updatedAt = isset($session['updated_at']) 
+                                ? \Carbon\Carbon::parse($session['updated_at'])->diffForHumans() 
+                                : 'Unknown';
+                            return "{$sessionId}: {$status} (Updated: {$updatedAt})";
+                        });
+                        return $sessions->join("\n");
+                    })
+                    ->sortable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -304,6 +372,12 @@ class UserResource extends Resource
                 Tables\Filters\Filter::make('no_pi_profile')
                     ->query(fn (Builder $query): Builder => $query->whereNull('pi_profile'))
                     ->label('No PI Profile'),
+                Tables\Filters\Filter::make('has_sessions')
+                    ->query(fn (Builder $query): Builder => $query->whereNotNull('sessions'))
+                    ->label('Has Active Sessions'),
+                Tables\Filters\Filter::make('no_sessions')
+                    ->query(fn (Builder $query): Builder => $query->whereNull('sessions'))
+                    ->label('No Active Sessions'),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -329,6 +403,7 @@ class UserResource extends Resource
         return [
             'index' => Pages\ListUsers::route('/'),
             'create' => Pages\CreateUser::route('/create'),
+            'view' => Pages\ViewUser::route('/{record}'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
     }

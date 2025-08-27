@@ -196,7 +196,7 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
         }
     }, []);
 
-    // Prepare dynamic variables for ElevenLabs
+    // Prepare dynamic variables for ElevenLabs - simplified to only include user data
     const elevenLabsVariables = {
         user_profile: JSON.stringify({
             id: user?.id || 0,
@@ -212,32 +212,7 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
             has_pi_assessment: user?.has_pi_assessment || false,
             has_pi_profile: user?.has_pi_profile || false
         }),
-        module_context: JSON.stringify({
-            route: {
-                name: 'modules.chat',
-                path: `/modules/${module.slug}/chat`,
-                params: {
-                    slug: module.slug
-                }
-            },
-            module: {
-                id: module.id,
-                title: module.title,
-                description: module.description,
-                goal: module.goal,
-                type: module.type,
-                slug: module.slug,
-                topics: module.topics,
-                topics_string: module.topics.join(', '),
-                sample_questions: module.sample_questions,
-                learning_objectives: module.learning_objectives,
-                expected_outcomes: module.expected_outcomes,
-                estimated_duration: module.estimated_duration,
-                difficulty: module.difficulty
-            }
-        }),
-        user_name: user?.name ? user.name.split(' ')[0] : 'Anonymous',
-        module: module.title
+        user_name: user?.name ? user.name.split(' ')[0] : 'Anonymous'
     };
 
     // Debug logging
@@ -263,48 +238,23 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
                             const targetElement = document.getElementById('btcs-chat');
                             console.log('Target element for Voiceflow:', targetElement);
                             
-                            // Debug: Log the complete payload being sent to Voiceflow
+                            // Debug: Log the user payload being sent to Voiceflow
                             const payload = {
-                                route: {
-                                    name: 'modules.chat',
-                                    path: `/modules/${module.slug}/chat`,
-                                    params: {
-                                        slug: module.slug
-                                    }
-                                },
-                                module: {
-                                    id: module.id,
-                                    title: module.title,
-                                    description: module.description,
-                                    goal: module.goal,
-                                    type: module.type,
-                                    slug: module.slug,
-                                    topics: module.topics,
-                                    topics_string: module.topics.join(', '),
-                                    sample_questions: module.sample_questions,
-                                    learning_objectives: module.learning_objectives,
-                                    expected_outcomes: module.expected_outcomes,
-                                    estimated_duration: module.estimated_duration,
-                                    difficulty: module.difficulty
-                                },
-                                user: {
-                                    id: user?.id || 0,
-                                    name: user?.name || 'Anonymous',
-                                    email: user?.email || '',
-                                    role: user?.role || 'member',
-                                    pi_behavioral_pattern_id: user?.pi_behavioral_pattern_id || null,
-                                    pi_behavioral_pattern: user?.pi_behavioral_pattern || null,
-                                    pi_raw_scores: user?.pi_raw_scores || null,
-                                    pi_assessed_at: user?.pi_assessed_at || null,
-                                    pi_notes: user?.pi_notes || null,
-                                    pi_profile: user?.pi_profile || null,
-                                    has_pi_assessment: user?.has_pi_assessment || false,
-                                    has_pi_profile: user?.has_pi_profile || false
-                                },
-                                session_context: 'pi_ssl_coaching'
+                                id: user?.id || 0,
+                                name: user?.name || 'Anonymous',
+                                email: user?.email || '',
+                                role: user?.role || 'member',
+                                pi_behavioral_pattern_id: user?.pi_behavioral_pattern_id || null,
+                                pi_behavioral_pattern: user?.pi_behavioral_pattern || null,
+                                pi_raw_scores: user?.pi_raw_scores || null,
+                                pi_assessed_at: user?.pi_assessed_at || null,
+                                pi_notes: user?.pi_notes || null,
+                                pi_profile: user?.pi_profile || null,
+                                has_pi_assessment: user?.has_pi_assessment || false,
+                                has_pi_profile: user?.has_pi_profile || false
                             };
                             
-                            console.log('🚀 Voiceflow Payload:', JSON.stringify(payload, null, 2));
+                            console.log('🚀 Voiceflow User Payload:', JSON.stringify(payload, null, 2));
                             
                             window.voiceflow.chat.load({
                                 verify: { projectID: '686331bc96acfa1dd62f6fd5' },
