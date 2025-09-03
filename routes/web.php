@@ -30,6 +30,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     // Sessions routes - main landing page after login
     Route::get('sessions', [SessionsController::class, 'index'])->name('sessions');
+    Route::get('sessions/new', function () {
+        return Inertia::render('NewSession');
+    })->name('sessions.new');
+    Route::get('sessions/audio', function () {
+        $user = auth()->user();
+        return Inertia::render('sessions/audio', [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'pi_behavioral_pattern_id' => $user->pi_behavioral_pattern_id,
+                'pi_behavioral_pattern' => $user->pi_behavioral_pattern,
+                'pi_raw_scores' => $user->pi_raw_scores,
+                'pi_assessed_at' => $user->pi_assessed_at,
+                'pi_notes' => $user->pi_notes,
+                'pi_profile' => $user->pi_profile,
+                'has_pi_assessment' => $user->hasPiAssessment(),
+                'has_pi_profile' => $user->hasPiProfile(),
+            ],
+        ]);
+    })->name('sessions.audio');
     Route::get('sessions/{sessionId}', [SessionsController::class, 'show'])->name('sessions.show');
     
     // Debug route for Railway deployment

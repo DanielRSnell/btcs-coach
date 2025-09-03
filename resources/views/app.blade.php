@@ -41,6 +41,9 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
+        {{-- Adaptive Card Extension for Voiceflow --}}
+        <script src="/adaptive-card-extension.js"></script>
+
         @routes
         @viteReactRefresh
         @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
@@ -48,5 +51,18 @@
     </head>
     <body class="font-sans antialiased">
         @inertia
+        
+        {{-- Load ElevenLabs observer last to ensure DOM is fully ready --}}
+        <script>
+            window.addEventListener('load', function() {
+                // Add a small delay to ensure everything is fully loaded
+                setTimeout(function() {
+                    const script = document.createElement('script');
+                    script.src = '/eleven-labs.js';
+                    script.async = false; // Load synchronously after delay
+                    document.body.appendChild(script);
+                }, 100);
+            });
+        </script>
     </body>
 </html>

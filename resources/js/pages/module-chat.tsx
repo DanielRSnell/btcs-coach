@@ -228,95 +228,57 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
                 const chatElement = document.getElementById('btcs-chat');
                 console.log('Chat element found:', chatElement);
                 
+                // Adaptive Card Extension is now available globally via window.AdaptiveCardExtension
+                
+                // Debug: Log the user payload being sent to Voiceflow
+                const payload = {
+                    id: user?.id || 0,
+                    name: user?.name || 'Anonymous',
+                    email: user?.email || '',
+                    role: user?.role || 'member',
+                    pi_behavioral_pattern_id: user?.pi_behavioral_pattern_id || null,
+                    pi_behavioral_pattern: user?.pi_behavioral_pattern || null,
+                    pi_raw_scores: user?.pi_raw_scores || null,
+                    pi_assessed_at: user?.pi_assessed_at || null,
+                    pi_notes: user?.pi_notes || null,
+                    pi_profile: user?.pi_profile || null,
+                    has_pi_assessment: user?.has_pi_assessment || false,
+                    has_pi_profile: user?.has_pi_profile || false
+                };
+                
+                console.log('🚀 Voiceflow User Payload:', JSON.stringify(payload, null, 2));
+
                 // Use the provided Voiceflow embed script
-                (function(d: Document, t: string) {
-                    const v = d.createElement(t) as HTMLScriptElement;
-                    const s = d.getElementsByTagName(t)[0];
+                (function(d, t) {
+                    var v = d.createElement(t), s = d.getElementsByTagName(t)[0];
                     v.onload = function() {
                         console.log('Voiceflow script loaded, window.voiceflow:', window.voiceflow);
-                        if (window.voiceflow && window.voiceflow.chat) {
-                            const targetElement = document.getElementById('btcs-chat');
-                            console.log('Target element for Voiceflow:', targetElement);
-                            
-                            // Debug: Log the user payload being sent to Voiceflow
-                            const payload = {
-                                id: user?.id || 0,
-                                name: user?.name || 'Anonymous',
-                                email: user?.email || '',
-                                role: user?.role || 'member',
-                                pi_behavioral_pattern_id: user?.pi_behavioral_pattern_id || null,
-                                pi_behavioral_pattern: user?.pi_behavioral_pattern || null,
-                                pi_raw_scores: user?.pi_raw_scores || null,
-                                pi_assessed_at: user?.pi_assessed_at || null,
-                                pi_notes: user?.pi_notes || null,
-                                pi_profile: user?.pi_profile || null,
-                                has_pi_assessment: user?.has_pi_assessment || false,
-                                has_pi_profile: user?.has_pi_profile || false
-                            };
-                            
-                            console.log('🚀 Voiceflow User Payload:', JSON.stringify(payload, null, 2));
-                            
-                            window.voiceflow.chat.load({
-                                verify: { projectID: '686331bc96acfa1dd62f6fd5' },
-                                url: 'https://general-runtime.voiceflow.com',
-                                versionID: 'production',
-                                voice: {
-                                    url: "https://runtime-api.voiceflow.com"
-                                },
-                                render: {
-                                    mode: 'embedded',
-                                    target: targetElement
-                                },
-                                assistant: {
-                                    // Generate a date string to avoid caching
-                                    stylesheet: '/voiceflow.css?v=' + new Date().toISOString().replace(/[:.]/g, '-')
-                                },
-                                autostart: true,
-                                launch: {
-                                    event: {
-                                        type: 'launch',
-                                        payload: payload
-                                    }
-                                },
-                            });
-                            console.log('Voiceflow chat loaded for module:', module.title);
-                        } else {
-                            console.error('Voiceflow widget failed to load - missing window.voiceflow');
-                            // Show fallback message
-                            const chatDiv = document.getElementById('btcs-chat');
-                            if (chatDiv) {
-                                chatDiv.innerHTML = `
-                                    <div class="flex items-center justify-center h-full text-gray-500">
-                                        <div class="text-center">
-                                            <p class="text-lg font-medium text-red-600 mb-2">Chat Temporarily Unavailable</p>
-                                            <p class="text-sm">Please refresh the page or try again later.</p>
-                                            <p class="text-xs mt-2 text-gray-400">Error: Voiceflow widget failed to initialize</p>
-                                        </div>
-                                    </div>
-                                `;
-                            }
-                        }
-                    };
-                    v.onerror = function() {
-                        console.error('Failed to load Voiceflow script from CDN');
-                        // Show error message in chat div
-                        const chatDiv = document.getElementById('btcs-chat');
-                        if (chatDiv) {
-                            chatDiv.innerHTML = `
-                                <div class="flex items-center justify-center h-full text-gray-500">
-                                    <div class="text-center">
-                                        <p class="text-lg font-medium text-red-600 mb-2">Chat Service Unavailable</p>
-                                        <p class="text-sm">Unable to connect to chat service.</p>
-                                        <p class="text-xs mt-2 text-gray-400">Please contact support if this issue persists.</p>
-                                    </div>
-                                </div>
-                            `;
-                        }
-                    };
-                    v.src = "https://cdn.voiceflow.com/widget-next/bundle.mjs";
-                    v.type = "text/javascript";
-                    console.log('Adding Voiceflow script to DOM...');
-                    s.parentNode?.insertBefore(v, s);
+                        // window.voiceflow.chat.load({
+                        //     verify: { projectID: '686331bc96acfa1dd62f6fd5' },
+                        //     url: 'https://general-runtime.voiceflow.com',
+                        //     versionID: 'production',
+                        //     assistant: {
+                        //         extensions: [window.AdaptiveCardExtension]
+                        //     },
+                        //     voice: {
+                        //         url: "https://runtime-api.voiceflow.com"
+                        //     },
+                        //     render: {
+                        //         mode: 'embedded',
+                        //         target: document.getElementById('btcs-chat')
+                        //     },
+                        //     launch: {
+                        //         event: {
+                        //             type: 'launch',
+                        //             payload: payload
+                        //         }
+                        //     },
+                        // });
+                        console.log('Voiceflow chat loaded for module:', module.title);
+                    }
+                    v.src = "https://cdn.voiceflow.com/widget-next/bundle.mjs"; 
+                    v.type = "text/javascript"; 
+                    s.parentNode.insertBefore(v, s);
                 })(document, 'script');
             }, 100); // 100ms delay to ensure DOM is ready
             

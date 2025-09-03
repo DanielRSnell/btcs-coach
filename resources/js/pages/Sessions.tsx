@@ -70,12 +70,11 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
     // Initialize Voiceflow script on component mount
     useEffect(() => {
         // Add Voiceflow script if not already present
-        if (!document.querySelector('script[src*="widget.bundle.mjs"]')) {
+        if (!document.querySelector('script[src*="widget-next/bundle.mjs"]')) {
             const script = document.createElement('script');
-            script.src = 'https://cdn.voiceflow.com/widget/bundle.mjs';
+            script.src = 'https://cdn.voiceflow.com/widget-next/bundle.mjs';
             script.async = true;
-            script.type = 'module';
-            script.crossOrigin = 'anonymous';
+            script.type = 'text/javascript';
             document.head.appendChild(script);
         }
     }, []);
@@ -104,9 +103,8 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
                         console.log('📦 SCRIPT LOADED: Voiceflow script loaded, window.voiceflow:', window.voiceflow);
                         loadVoiceflowChat();
                     };
-                    v.src = 'https://cdn.voiceflow.com/widget/bundle.mjs';
-                    v.type = 'module';
-                    v.crossOrigin = 'anonymous';
+                    v.src = 'https://cdn.voiceflow.com/widget-next/bundle.mjs';
+                    v.type = 'text/javascript';
                     s.parentNode?.insertBefore(v, s);
                 })(document, 'script');
             }
@@ -143,6 +141,10 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
                 verify: { projectID: '686331bc96acfa1dd62f6fd5' },
                 url: 'https://general-runtime.voiceflow.com',
                 versionID: 'production',
+                assistant: {
+                    extensions: [window.AdaptiveCardExtension],
+                    stylesheet: '/voiceflow.css?v=' + new Date().toISOString().replace(/[:.]/g, '-')
+                },
                 voice: {
                     url: "https://runtime-api.voiceflow.com"
                 },
@@ -150,17 +152,13 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
                     mode: 'embedded',
                     target: targetElement
                 },
-                assistant: {
-                    // Generate a date string to avoid caching
-                    stylesheet: '/voiceflow.css?v=' + new Date().toISOString().replace(/[:.]/g, '-')
-                },
                 autostart: true,
                 launch: {
                     event: {
                         type: 'launch',
                         payload: payload
                     }
-                }
+                },
             });
             
             console.log('✅ CHAT LOADED: Voiceflow chat loaded successfully');
@@ -621,7 +619,7 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="p-0 flex-1 flex flex-col min-h-0">
-                            <div className="flex-1 overflow-y-auto">
+                            <div className="flex-1 overflow-y-auto no-scrollbar">
                                 {Object.keys(sessions).length === 0 ? (
                                     <div className="h-full flex flex-col items-center justify-center p-6 text-center">
                                         <div className="flex flex-col items-center space-y-4">

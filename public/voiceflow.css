@@ -1,3 +1,33 @@
+/* ShadCN Theme Variables */
+:root, :host {
+    /* Colors */
+    --background: hsl(0 0% 100%);
+    --foreground: hsl(222.2 84% 4.9%);
+    --muted: hsl(210 40% 98%);
+    --muted-foreground: hsl(215.4 16.3% 46.9%);
+    --border: hsl(214.3 31.8% 91.4%);
+    --accent: hsl(210 40% 96%);
+    --accent-foreground: hsl(222.2 84% 4.9%);
+    --card: hsl(0 0% 100%);
+    --card-foreground: hsl(222.2 84% 4.9%);
+    
+    /* Radius */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    
+    /* Spacing */
+    --spacing-xs: 8px;
+    --spacing-sm: 12px;
+    --spacing-md: 16px;
+    --spacing-lg: 20px;
+    --spacing-xl: 24px;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
 .vfrc-header {
     display: none!important;
 }
@@ -18,4 +48,9 @@
 .vfrc-chat--dialog {
     -ms-overflow-style: none;
     scrollbar-width: none;
+}
+
+
+.vfrc-footer {
+    z-index: 10!important;
 }
