@@ -18,6 +18,7 @@
     `;
     
     let observer;
+    let shadowObservers = new Map(); // Track shadow DOM observers for each shadow root
     let processedShadowRoots = new Set(); // Track which shadow roots we've already processed
     
     function waitForShadowDOMContent(shadowRoot, callback, maxAttempts = 10, attempt = 1) {
@@ -125,6 +126,117 @@
         }
         
         // Continue observing for new shadow roots (don't disconnect observer)
+        
+        // Set up continuous monitoring of this shadow root
+        setupShadowDOMMonitoring(shadowRoot, shadowRootId);
+    }
+    
+    function setupShadowDOMMonitoring(shadowRoot, shadowRootId) {
+        if (shadowObservers.has(shadowRootId)) {
+            console.log(`👁️ Shadow DOM monitoring already active for ${shadowRootId}`);
+            return;
+        }
+        
+        console.log(`👁️ Setting up continuous shadow DOM monitoring for ${shadowRootId}`);
+        
+        const shadowObserver = new MutationObserver((mutations) => {
+            let needsReprocessing = false;
+            
+            mutations.forEach((mutation) => {
+                // Check for added nodes that might need processing
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        // Check if new elements have classes we need to process
+                        if (node.classList?.contains('shadow-lg') || 
+                            node.querySelector?.('.shadow-lg') ||
+                            (node.tagName === 'P' && node.classList?.contains('whitespace-nowrap')) ||
+                            node.querySelector?.('p.whitespace-nowrap')) {
+                            console.log(`🔄 New processable elements detected in shadow DOM ${shadowRootId}`);
+                            needsReprocessing = true;
+                        }
+                    }
+                });
+                
+                // Check for attribute changes on existing elements
+                if (mutation.type === 'attributes' && mutation.target.nodeType === Node.ELEMENT_NODE) {
+                    const target = mutation.target;
+                    
+                    // If an element gained .shadow-lg class or lost .widget-wrapper
+                    if ((target.classList.contains('shadow-lg') && !target.classList.contains('widget-wrapper')) ||
+                        (target.tagName === 'P' && target.classList.contains('whitespace-nowrap') && !target.classList.contains('hide-footer'))) {
+                        console.log(`🔄 Element class changes detected in shadow DOM ${shadowRootId}`);
+                        needsReprocessing = true;
+                    }
+                }
+            });
+            
+            if (needsReprocessing) {
+                console.log(`🔧 Reprocessing shadow DOM elements for ${shadowRootId}`);
+                // Small delay to allow DOM to settle
+                setTimeout(() => {
+                    reprocessShadowDOMElements(shadowRoot, shadowRootId);
+                }, 100);
+            }
+        });
+        
+        // Start observing the shadow root
+        shadowObserver.observe(shadowRoot, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['class']
+        });
+        
+        // Store the observer reference
+        shadowObservers.set(shadowRootId, shadowObserver);
+        console.log(`✅ Shadow DOM monitoring active for ${shadowRootId}`);
+    }
+    
+    function reprocessShadowDOMElements(shadowRoot, shadowRootId) {
+        console.log(`🔄 Reprocessing elements in shadow DOM ${shadowRootId}`);
+        
+        // Process .shadow-lg elements that don't have .widget-wrapper
+        const newShadowElements = shadowRoot.querySelectorAll('.shadow-lg:not(.widget-wrapper)');
+        if (newShadowElements.length > 0) {
+            console.log(`🎯 Found ${newShadowElements.length} new .shadow-lg elements to process`);
+            
+            newShadowElements.forEach((element, index) => {
+                console.log(`🎯 Reprocessing .shadow-lg element ${index + 1}`);
+                
+                // Add .widget-wrapper class
+                element.classList.add('widget-wrapper');
+                
+                // Remove .shadow-lg class
+                element.classList.remove('shadow-lg');
+                
+                // Remove dimension constraint classes
+                element.classList.remove('h-[calc(100%-80px)]', 'max-h-[550px]', 'max-w-[400px]');
+            });
+        }
+        
+        // Process footer elements that don't have .hide-footer
+        const newFooterElements = shadowRoot.querySelectorAll('p.whitespace-nowrap:not(.hide-footer)');
+        if (newFooterElements.length > 0) {
+            console.log(`🎯 Found ${newFooterElements.length} new footer elements to hide`);
+            
+            newFooterElements.forEach((pElement, index) => {
+                const hasSpan = pElement.querySelector('span');
+                const hasAnchor = pElement.querySelector('a[href]');
+                
+                if (hasSpan && hasAnchor) {
+                    console.log(`🎯 Reprocessing footer element ${index + 1}`);
+                    pElement.classList.add('hide-footer');
+                }
+            });
+        }
+        
+        // Check if widget needs to be faded in (in case it was reset)
+        const elevenLabsElement = document.querySelector('elevenlabs-convai');
+        if (elevenLabsElement && elevenLabsElement.style.opacity !== '1') {
+            console.log('🎭 Re-fading in ElevenLabs widget...');
+            elevenLabsElement.style.transition = 'opacity 0.5s ease-in-out';
+            elevenLabsElement.style.opacity = '1';
+        }
     }
     
     function checkForShadowRoot() {

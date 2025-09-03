@@ -1,77 +1,4 @@
-// Styling functions using CSS variables from voiceflow.css
-function getExtensionContainerStyles() {
-    return `
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 1;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: opacity 0.3s ease-out;
-    `;
-}
-
-function getCardsContainerStyles() {
-    return `
-        display: flex;
-        flex-direction: row;
-        gap: var(--spacing-lg);
-        padding: var(--spacing-xl);
-        transition: opacity 0.3s ease-out;
-    `;
-}
-
-function getCardStyles() {
-    return `
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-md);
-        padding: var(--spacing-lg);
-        cursor: pointer;
-        color: var(--card-foreground);
-        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: var(--shadow-sm);
-        width: 280px;
-        height: 120px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        opacity: 0;
-        transform: translateY(30px);
-    `;
-}
-
-function getCardContentStyles() {
-    return `
-        text-align: left;
-    `;
-}
-
-function getCardTitleStyles() {
-    return `
-        margin: 0 0 var(--spacing-xs) 0;
-        font-size: 16px;
-        font-weight: 600;
-        color: var(--foreground);
-        line-height: 1.3;
-    `;
-}
-
-function getCardDescriptionStyles() {
-    return `
-        margin: 0;
-        font-size: 14px;
-        color: var(--muted-foreground);
-        line-height: 1.4;
-    `;
-}
+// All styles are now defined in voiceflow.css using CSS classes
 
 window.AdaptiveCardExtension = {
     name: 'ADAPTIVE',
@@ -113,15 +40,34 @@ window.AdaptiveCardExtension = {
             return;
         }
 
-        // Check if conversation is already active - allow only ADAPTIVE system responses
+        // Check if user has sent any messages or if conversation is already active - if so, don't render cards
         const dialogElement = vfrcChat.querySelector('.vfrc-chat--dialog');
-        const hasNonAdaptiveMessages = dialogElement && (
-            dialogElement.children.length > 2 || 
-            dialogElement.querySelector('.vfrc-message:not(.vfrc-message--extension-ADAPTIVE)')
-        );
+        const hasUserMessages = dialogElement && dialogElement.querySelector('.vfrc-user-response');
+        const hasMultipleMessages = dialogElement && dialogElement.children.length > 2;
         
-        if (hasNonAdaptiveMessages) {
-            console.log('Conversation is already active');
+        console.log('🔍 Dialog element found:', !!dialogElement);
+        console.log('🔍 User messages found:', !!hasUserMessages);
+        console.log('🔍 Dialog children count:', dialogElement ? dialogElement.children.length : 0);
+        console.log('🔍 Has multiple messages (>2 children):', !!hasMultipleMessages);
+        
+        if (dialogElement) {
+            const allUserMessages = dialogElement.querySelectorAll('.vfrc-user-response');
+            console.log('🔍 Total user message elements:', allUserMessages.length);
+            console.log('🔍 Dialog HTML:', dialogElement.outerHTML.substring(0, 500) + '...');
+            allUserMessages.forEach((msg, i) => {
+                console.log(`🔍 User message ${i + 1}:`, msg.textContent?.trim());
+                console.log(`🔍 User message ${i + 1} classes:`, msg.className);
+            });
+        }
+        
+        if (hasUserMessages || hasMultipleMessages) {
+            if (hasUserMessages) {
+                console.log('✅ User has already sent messages - not rendering adaptive cards');
+            }
+            if (hasMultipleMessages) {
+                console.log('✅ Conversation already active (>2 children) - not rendering adaptive cards');
+            }
+            console.log('🚫 Extension render blocked - active conversation detected');
             // Don't apply overflow hidden if cards aren't being rendered
             if (vfrcChat && vfrcChat.dataset.originalOverflow) {
                 vfrcChat.style.overflow = vfrcChat.dataset.originalOverflow;
@@ -129,6 +75,9 @@ window.AdaptiveCardExtension = {
             }
             return;
         }
+        
+        console.log('✅ No user messages found - proceeding to render adaptive cards');
+        console.log('🎴 Creating extension container...');
 
         // Only set overflow hidden if we're actually rendering cards
         if (vfrcChat) {
@@ -143,10 +92,15 @@ window.AdaptiveCardExtension = {
         // Create new extension-cards container with glass overlay
         const extensionContainer = document.createElement('div');
         extensionContainer.id = 'extension-cards';
-        extensionContainer.style.cssText = getExtensionContainerStyles();
+        extensionContainer.className = 'adaptive-cards-extension-container';
+        
+        console.log('🎴 Extension container created with ID:', extensionContainer.id);
         
         // Add extension-cards as a child of vfrc-chat
         vfrcChat.appendChild(extensionContainer);
+        
+        console.log('🎴 Extension container added to DOM');
+        console.log('🎴 Extension container in DOM check:', !!document.getElementById('extension-cards'));
 
         // Hide chat input initially
         const chatInput = document.querySelector('.vfrc-chat--input');
@@ -171,17 +125,15 @@ window.AdaptiveCardExtension = {
 
         const container = document.createElement('div');
         container.className = 'adaptive-cards-container';
-        container.style.cssText = getCardsContainerStyles();
 
         cards.forEach((card, index) => {
             const cardElement = document.createElement('div');
             cardElement.className = 'adaptive-card';
-            cardElement.style.cssText = getCardStyles();
 
             cardElement.innerHTML = `
-                <div style="${getCardContentStyles()}">
-                    <h3 style="${getCardTitleStyles()}">${card.title}</h3>
-                    <p style="${getCardDescriptionStyles()}">${card.description}</p>
+                <div class="adaptive-card-content">
+                    <h3 class="adaptive-card-title">${card.title}</h3>
+                    <p class="adaptive-card-description">${card.description}</p>
                 </div>
             `;
 
@@ -191,15 +143,7 @@ window.AdaptiveCardExtension = {
                 cardElement.style.transform = 'translateY(0)';
             }, index * 200 + 100); // 200ms delay between cards, 100ms initial delay
 
-            cardElement.addEventListener('mouseenter', () => {
-                cardElement.style.transform = 'translateY(-2px)';
-                cardElement.style.boxShadow = 'var(--shadow-md)';
-            });
-
-            cardElement.addEventListener('mouseleave', () => {
-                cardElement.style.transform = 'translateY(0)';
-                cardElement.style.boxShadow = 'var(--shadow-sm)';
-            });
+            // Hover effects are now handled by CSS
 
             cardElement.addEventListener('click', () => {
                 // Get the current URL to extract module context
@@ -246,35 +190,103 @@ window.AdaptiveCardExtension = {
         const chatDialog = vfrcChat.querySelector('.vfrc-chat--dialog');
         if (chatDialog) {
             const checkAndCleanupExtension = () => {
-                const currentExtensionContainer = document.getElementById('extension-cards');
-                const hasOverflowHidden = vfrcChat.style.overflow === 'hidden';
-                const hasNonAdaptiveMessages = chatDialog.children.length > 2 || 
-                    chatDialog.querySelector('.vfrc-message:not(.vfrc-message--extension-ADAPTIVE)');
+                // Use the actual extension container reference instead of getElementById
+                const currentExtensionContainer = extensionContainer.parentNode ? extensionContainer : null;
+                const hasUserMessages = chatDialog.querySelector('.vfrc-user-response');
+                const hasMultipleMessages = chatDialog.children.length > 2;
                 
-                // Remove extension if overflow is not hidden OR if there are non-adaptive messages
-                if (currentExtensionContainer && (!hasOverflowHidden || hasNonAdaptiveMessages)) {
+                console.log('🔍 Cleanup check - Extension exists:', !!currentExtensionContainer);
+                console.log('🔍 Cleanup check - User messages:', !!hasUserMessages);
+                console.log('🔍 Cleanup check - Multiple messages (>2 children):', !!hasMultipleMessages);
+                console.log('🔍 Cleanup check - Dialog children count:', chatDialog.children.length);
+                
+                if (hasUserMessages) {
+                    const allUserMessages = chatDialog.querySelectorAll('.vfrc-user-response');
+                    console.log('🔍 Cleanup check - Total user messages:', allUserMessages.length);
+                }
+                
+                // Remove extension if user has sent any messages OR if conversation is already active
+                if (currentExtensionContainer && (hasUserMessages || hasMultipleMessages)) {
+                    console.log('🧹 Cleanup: User messages detected, removing extension');
+                    console.log('🧹 Extension being removed:', currentExtensionContainer);
                     currentExtensionContainer.style.opacity = '0';
                     setTimeout(() => {
                         if (currentExtensionContainer.parentNode) {
+                            console.log('🧹 Actually removing extension from DOM');
                             currentExtensionContainer.remove();
+                            console.log('🧹 Extension removed successfully');
                         }
                         // Restore original overflow
                         if (vfrcChat && vfrcChat.dataset.originalOverflow) {
                             vfrcChat.style.overflow = vfrcChat.dataset.originalOverflow;
                             delete vfrcChat.dataset.originalOverflow;
                         }
+                        // Show chat input
+                        const chatInput = document.querySelector('.vfrc-chat--input');
+                        if (chatInput) {
+                            chatInput.style.display = 'flex';
+                        }
                     }, 300);
                     return true; // Extension was removed
+                } else if (!currentExtensionContainer) {
+                    console.log('🔍 No extension container to remove (already gone)');
+                } else if (!hasUserMessages && !hasMultipleMessages) {
+                    console.log('🔍 No user messages or multiple messages detected, extension staying active');
                 }
                 return false; // Extension still active
             };
 
             const observer = new MutationObserver((mutations) => {
+                let shouldCheckForUserMessages = false;
+                
                 mutations.forEach((mutation) => {
                     if (mutation.type === 'childList') {
-                        checkAndCleanupExtension();
+                        // Check if user sent a message
+                        mutation.addedNodes.forEach((node) => {
+                            if (node.nodeType === Node.ELEMENT_NODE) {
+                                // Check if this is a user response or contains one
+                                const isUserMessage = node.classList?.contains('vfrc-user-response') || 
+                                                    node.querySelector?.('.vfrc-user-response');
+                                
+                                if (isUserMessage) {
+                                    console.log('🔄 User message detected in added node, immediately removing extension');
+                                    shouldCheckForUserMessages = true;
+                                    
+                                    // Immediate removal when user message detected
+                                    if (extensionContainer && extensionContainer.parentNode) {
+                                        console.log('🚀 Immediate extension removal triggered');
+                                        extensionContainer.style.opacity = '0';
+                                        setTimeout(() => {
+                                            if (extensionContainer.parentNode) {
+                                                extensionContainer.remove();
+                                                console.log('✅ Extension removed immediately');
+                                            }
+                                            // Restore original overflow
+                                            if (vfrcChat && vfrcChat.dataset.originalOverflow) {
+                                                vfrcChat.style.overflow = vfrcChat.dataset.originalOverflow;
+                                                delete vfrcChat.dataset.originalOverflow;
+                                            }
+                                            // Show chat input
+                                            const chatInput = document.querySelector('.vfrc-chat--input');
+                                            if (chatInput) {
+                                                chatInput.style.display = 'flex';
+                                            }
+                                        }, 300);
+                                    }
+                                }
+                            }
+                        });
                     }
                 });
+                
+                // If any user message was detected, or just run a periodic check
+                if (shouldCheckForUserMessages || Math.random() < 0.1) { // 10% chance periodic check
+                    // Run cleanup check which will detect user messages
+                    const wasRemoved = checkAndCleanupExtension();
+                    if (wasRemoved) {
+                        console.log('✅ Extension removed due to user message detection');
+                    }
+                }
             });
 
             // Also observe style changes on vfrcChat to detect overflow changes
@@ -286,10 +298,10 @@ window.AdaptiveCardExtension = {
                 });
             });
 
-            // Start observing
+            // Start observing - watch the entire subtree for user messages
             observer.observe(chatDialog, {
                 childList: true,
-                subtree: false
+                subtree: true // Watch all child elements deeply
             });
             
             styleObserver.observe(vfrcChat, {
@@ -299,6 +311,40 @@ window.AdaptiveCardExtension = {
 
             // Initial check
             checkAndCleanupExtension();
+            
+            // Additional continuous monitoring - check every 500ms for user messages
+            const continuousCheck = setInterval(() => {
+                // Use the actual extension container reference
+                const currentExtensionContainer = extensionContainer.parentNode ? extensionContainer : null;
+                if (!currentExtensionContainer) {
+                    // Extension already removed, stop checking
+                    clearInterval(continuousCheck);
+                    return;
+                }
+                
+                const hasUserMessages = chatDialog.querySelector('.vfrc-user-response');
+                const hasMultipleMessages = chatDialog.children.length > 2;
+                
+                if (hasUserMessages || hasMultipleMessages) {
+                    if (hasUserMessages) {
+                        console.log('🔄 Continuous check: User message detected, cleaning up');
+                    }
+                    if (hasMultipleMessages) {
+                        console.log('🔄 Continuous check: Multiple messages detected, cleaning up');
+                    }
+                    const wasRemoved = checkAndCleanupExtension();
+                    if (wasRemoved) {
+                        clearInterval(continuousCheck);
+                    }
+                }
+            }, 500);
+            
+            // Clean up interval when extension is removed
+            const originalRemove = extensionContainer.remove;
+            extensionContainer.remove = function() {
+                clearInterval(continuousCheck);
+                return originalRemove.call(this);
+            };
         }
     }
 };
