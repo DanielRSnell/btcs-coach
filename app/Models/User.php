@@ -30,6 +30,8 @@ class User extends Authenticatable implements FilamentUser
         'pi_assessor_name',
         'pi_notes',
         'pi_profile',
+        'pi_chart_image',
+        'pi_document',
     ];
 
     /**
@@ -211,7 +213,13 @@ class User extends Authenticatable implements FilamentUser
     {
         $sessionModels = $this->voiceflowSessions()->orderBy('session_updated_at', 'desc')->get();
         
+        \Log::debug('🔍 User getSessions called', [
+            'user_id' => $this->id,
+            'session_models_count' => $sessionModels->count()
+        ]);
+        
         if ($sessionModels->isEmpty()) {
+            \Log::info('📭 No sessions found for user', ['user_id' => $this->id]);
             return [];
         }
         
@@ -221,6 +229,7 @@ class User extends Authenticatable implements FilamentUser
         return $sessionModels->keyBy('session_id')->map(function ($session) {
             return [
                 'session_id' => $session->session_id, // Voiceflow userID (the actual unique identifier)
+                'name' => $session->name, // Custom session name
                 'project_id' => $session->project_id, // localStorage key (might be same for multiple sessions)
                 'value' => $session->value_data,
                 'status' => $session->status,
@@ -229,6 +238,14 @@ class User extends Authenticatable implements FilamentUser
                 'updated_at' => $session->session_updated_at?->toISOString(),
             ];
         })->toArray();
+        
+        \Log::debug('✅ User getSessions result', [
+            'user_id' => $this->id,
+            'result_count' => count($result),
+            'result_keys' => array_keys($result)
+        ]);
+        
+        return $result;
     }
 
     /**
@@ -253,6 +270,7 @@ class User extends Authenticatable implements FilamentUser
         
         return [
             'session_id' => $sessionModel->session_id, // This is the Voiceflow userID
+            'name' => $sessionModel->name, // Custom session name
             'project_id' => $sessionModel->project_id, // This is the localStorage key
             'value' => $sessionModel->value_data,
             'status' => $sessionModel->status,
@@ -268,7 +286,7 @@ class User extends Authenticatable implements FilamentUser
      * @param string $projectId The Voiceflow project ID (localStorage key like '686331bc96acfa1dd62f6fd5')
      * @param array $sessionData The session data containing userID and other info
      */
-    public function setSession(string $projectId, array $sessionData): void
+    public function setSession(string $projectId, array $sessionData, ?string $sessionName = null): void
     {
         $valueData = $sessionData['last_turn'] ?? $sessionData;
         
@@ -283,6 +301,7 @@ class User extends Authenticatable implements FilamentUser
         $this->voiceflowSessions()->updateOrCreate(
             ['session_id' => $voiceflowUserID, 'project_id' => $projectId],
             [
+                'name' => $sessionName,
                 'value_data' => $valueData,
                 'status' => $valueData['status'] ?? 'ACTIVE',
                 'source' => $sessionData['source'] ?? 'unknown',

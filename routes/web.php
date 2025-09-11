@@ -20,6 +20,8 @@ Route::prefix('api/sessions')->middleware('api.auth')->group(function () {
         ->name('api.sessions.update');
     Route::post('check', [SessionsController::class, 'checkSession'])
         ->name('api.sessions.check');
+    Route::post('feedback', [SessionsController::class, 'submitFeedback'])
+        ->name('api.sessions.feedback');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

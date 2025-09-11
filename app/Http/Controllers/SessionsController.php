@@ -19,6 +19,10 @@ class SessionsController extends Controller
         // Get user's sessions for the sidebar
         $sessions = $user->getSessions() ?? [];
         
+        // Check for new session parameters
+        $sessionName = $request->query('name');
+        $sessionStatus = $request->query('status');
+        
         return Inertia::render('Sessions', [
             'user' => [
                 'id' => $user->id,
@@ -35,6 +39,8 @@ class SessionsController extends Controller
                 'has_pi_profile' => $user->hasPiProfile(),
             ],
             'sessions' => $sessions,
+            'newSessionName' => $sessionName,
+            'newSessionStatus' => $sessionStatus,
         ]);
     }
 
@@ -84,17 +90,20 @@ class SessionsController extends Controller
             'user_id' => $request->user()->id,
             'project_id' => $request->input('project_id'),
             'session_data' => $request->input('session_data'),
+            'session_name' => $request->input('session_name'),
             'request_data' => $request->all()
         ]);
 
         $request->validate([
             'project_id' => 'required|string', // This is the localStorage key (like '686331bc96acfa1dd62f6fd5')
-            'session_data' => 'array'
+            'session_data' => 'array',
+            'session_name' => 'nullable|string|max:255'
         ]);
 
         $user = $request->user();
         $projectId = $request->input('project_id'); // The localStorage key
         $sessionData = $request->input('session_data', []);
+        $sessionName = $request->input('session_name');
 
         // Extract userID from session data for logging
         $valueData = $sessionData['last_turn'] ?? $sessionData;
@@ -121,7 +130,7 @@ class SessionsController extends Controller
         ]);
 
         // Register the session using project_id
-        $user->setSession($projectId, $processedSessionData);
+        $user->setSession($projectId, $processedSessionData, $sessionName);
 
         // Verify the session was stored
         $storedSession = $user->getSession($projectId, $voiceflowUserID);
@@ -200,6 +209,67 @@ class SessionsController extends Controller
         return response()->json([
             'exists' => $session !== null,
             'session' => $session
+        ]);
+    }
+
+    /**
+     * Submit feedback for a session
+     */
+    public function submitFeedback(Request $request): JsonResponse
+    {
+        \Log::info('📝 Session Feedback Submission Request', [
+            'user_id' => $request->user()->id,
+            'request_data' => $request->all()
+        ]);
+
+        $request->validate([
+            'session_id' => 'required|string',
+            'rating' => 'required|in:positive,negative',
+            'comment' => 'nullable|string|max:1000'
+        ]);
+
+        $user = $request->user();
+        $sessionId = $request->input('session_id');
+        $rating = $request->input('rating');
+        $comment = $request->input('comment');
+
+        // Find the session by session_id (which is the Voiceflow userID)
+        $voiceflowSession = $user->voiceflowSessions()->where('session_id', $sessionId)->first();
+
+        if (!$voiceflowSession) {
+            \Log::warning('📝 Session not found for feedback submission', [
+                'user_id' => $user->id,
+                'session_id' => $sessionId
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Session not found'
+            ], 404);
+        }
+
+        // Submit feedback based on rating
+        if ($rating === 'positive') {
+            $voiceflowSession->setPositiveFeedback($comment);
+        } else {
+            $voiceflowSession->setNegativeFeedback($comment);
+        }
+
+        \Log::info('✅ Session feedback submitted successfully', [
+            'user_id' => $user->id,
+            'session_id' => $sessionId,
+            'rating' => $rating,
+            'has_comment' => !empty($comment)
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Feedback submitted successfully',
+            'feedback' => [
+                'rating' => $rating,
+                'comment' => $comment,
+                'submitted_at' => $voiceflowSession->feedback_submitted_at->toISOString()
+            ]
         ]);
     }
 }

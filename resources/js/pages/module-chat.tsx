@@ -250,7 +250,7 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
 
                 // Use the provided Voiceflow embed script
                 (function(d, t) {
-                    var v = d.createElement(t), s = d.getElementsByTagName(t)[0];
+                    const v = d.createElement(t), s = d.getElementsByTagName(t)[0];
                     v.onload = function() {
                         console.log('Voiceflow script loaded, window.voiceflow:', window.voiceflow);
                         // window.voiceflow.chat.load({

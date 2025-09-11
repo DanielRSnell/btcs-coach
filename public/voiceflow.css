@@ -26,10 +26,25 @@
     /* Shadows */
     --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --chat-bubble-max-width: 570px;
+}
+
+
+.vfrc-message {
+    max-width: var(--chat-bubble-max-width)!important;
 }
 
 .vfrc-header {
     display: none!important;
+}
+
+.vfrc-footer button:not([title="Send" i]) {
+    display: none!important;
+}
+
+.vfrc-user-response {
+    margin-left: auto!important;
+    max-width: var(--chat-bubble-max-width)!important;
 }
 
 .vfrc-assistant-info {
@@ -151,4 +166,162 @@
         padding: var(--spacing-md);
         gap: var(--spacing-md);
     }
+}
+
+/* Window Actions Styles */
+#window-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    margin: 0;
+}
+
+/* Separate microphone button from thumbs buttons */
+#window-actions .window-btn--mic {
+    margin-right: 12px;
+}
+
+/* Window Button Base Styles */
+.window-btn {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+        0 1px 3px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    min-width: 80px;
+}
+
+.window-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.window-btn:active {
+    transform: translateY(0);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 
+        0 1px 2px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Microphone Button Variant */
+.window-btn--mic {
+    border-radius: 8px;
+    padding: 8px;
+    min-width: 36px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.window-btn--mic:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.15) 100%);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 20px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.window-btn--mic svg {
+    width: 18px;
+    height: 18px;
+    color: rgba(255, 255, 255, 0.95);
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    transition: all 0.2s ease;
+}
+
+.window-btn--mic:hover svg {
+    color: rgba(255, 255, 255, 1);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+    transform: scale(1.05);
+}
+
+/* Thumbs Button Variant */
+.window-btn--thumbs {
+    border-radius: 6px;
+    padding: 6px;
+    min-width: 32px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* SVG Icons in Thumbs Buttons */
+.window-btn--thumbs svg {
+    width: 16px;
+    height: 16px;
+    color: rgba(255, 255, 255, 0.8);
+    transition: color 0.2s ease;
+}
+
+.window-btn--thumbs:hover svg {
+    color: rgba(255, 255, 255, 0.95);
+}
+
+/* Special hover effects for thumbs up (green tint) */
+.window-btn--thumbs:nth-child(2):hover {
+    background: rgba(34, 197, 94, 0.15);
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.window-btn--thumbs:nth-child(2):hover svg {
+    color: rgba(34, 197, 94, 0.9);
+}
+
+/* Special hover effects for thumbs down (red tint) */
+.window-btn--thumbs:nth-child(3):hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.window-btn--thumbs:nth-child(3):hover svg {
+    color: rgba(239, 68, 68, 0.9);
+}
+
+/* Subtle shine effect on hover */
+.window-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
+    transition: left 0.5s ease;
+}
+
+.window-btn:hover::before {
+    left: 100%;
 }

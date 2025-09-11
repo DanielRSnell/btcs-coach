@@ -42,7 +42,7 @@
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
         {{-- Adaptive Card Extension for Voiceflow --}}
-        <script src="/adaptive-card-extension.js"></script>
+        <script src="/adaptive-card-extension.js?v={{ time() }}"></script>
 
         @routes
         @viteReactRefresh

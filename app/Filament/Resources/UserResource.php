@@ -73,6 +73,21 @@ class UserResource extends Resource
                             ->placeholder('Select a PI pattern'),
                         Forms\Components\DateTimePicker::make('pi_assessed_at')
                             ->label('Assessment Date'),
+                        Forms\Components\FileUpload::make('pi_chart_image')
+                            ->label('PI Chart Image')
+                            ->disk('s3')
+                            ->directory('pi-charts')
+                            ->visibility('public')
+                            ->image()
+                            ->maxSize(5120),
+                        
+                        Forms\Components\FileUpload::make('pi_document')
+                            ->label('PI Document')
+                            ->disk('s3')
+                            ->directory('pi-documents')
+                            ->visibility('public')
+                            ->acceptedFileTypes(['application/pdf'])
+                            ->maxSize(10240),
                         Forms\Components\Textarea::make('pi_notes')
                             ->label('Assessment Notes')
                             ->rows(3)
@@ -108,7 +123,9 @@ class UserResource extends Resource
                                     ])
                                     ->addActionLabel('Add Behavior')
                                     ->collapsible()
-                                    ->itemLabel(fn (array $state): ?string => $state['behavior'] ?? null)
+                                    ->itemLabel(fn ($state): ?string => 
+                                        is_array($state) ? ($state['behavior'] ?? null) : null
+                                    )
                                     ->formatStateUsing(function ($state) {
                                         if (!$state) return [];
                                         // Transform array of strings to array of objects for repeater
@@ -137,7 +154,9 @@ class UserResource extends Resource
                                     ])
                                     ->addActionLabel('Add Condition')
                                     ->collapsible()
-                                    ->itemLabel(fn (array $state): ?string => $state['condition'] ?? null)
+                                    ->itemLabel(fn ($state): ?string => 
+                                        is_array($state) ? ($state['condition'] ?? null) : null
+                                    )
                                     ->formatStateUsing(function ($state) {
                                         if (!$state) return [];
                                         return collect($state)->map(fn($item) => ['condition' => $item])->toArray();
@@ -156,7 +175,9 @@ class UserResource extends Resource
                                     ])
                                     ->addActionLabel('Add Condition to Avoid')
                                     ->collapsible()
-                                    ->itemLabel(fn (array $state): ?string => $state['condition'] ?? null)
+                                    ->itemLabel(fn ($state): ?string => 
+                                        is_array($state) ? ($state['condition'] ?? null) : null
+                                    )
                                     ->formatStateUsing(function ($state) {
                                         if (!$state) return [];
                                         return collect($state)->map(fn($item) => ['condition' => $item])->toArray();
@@ -330,6 +351,8 @@ class UserResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->recordTitleAttribute('name')
+            ->recordUrl(fn ($record) => UserResource::getUrl('edit', ['record' => $record]))
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
@@ -370,6 +393,18 @@ class UserResource extends Resource
                     ->label('Has PI Profile')
                     ->boolean()
                     ->getStateUsing(fn ($record) => !is_null($record->pi_profile))
+                    ->sortable()
+                    ->toggleable(),
+                Tables\Columns\IconColumn::make('pi_chart_image')
+                    ->label('PI Chart')
+                    ->boolean()
+                    ->getStateUsing(fn ($record) => !is_null($record->pi_chart_image))
+                    ->sortable()
+                    ->toggleable(),
+                Tables\Columns\IconColumn::make('pi_document')
+                    ->label('PI Document')
+                    ->boolean()
+                    ->getStateUsing(fn ($record) => !is_null($record->pi_document))
                     ->sortable()
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('voiceflow_sessions_count')
@@ -444,6 +479,18 @@ class UserResource extends Resource
                 Tables\Filters\Filter::make('no_pi_profile')
                     ->query(fn (Builder $query): Builder => $query->whereNull('pi_profile'))
                     ->label('No PI Profile'),
+                Tables\Filters\Filter::make('has_pi_chart')
+                    ->query(fn (Builder $query): Builder => $query->whereNotNull('pi_chart_image'))
+                    ->label('Has PI Chart'),
+                Tables\Filters\Filter::make('no_pi_chart')
+                    ->query(fn (Builder $query): Builder => $query->whereNull('pi_chart_image'))
+                    ->label('No PI Chart'),
+                Tables\Filters\Filter::make('has_pi_document')
+                    ->query(fn (Builder $query): Builder => $query->whereNotNull('pi_document'))
+                    ->label('Has PI Document'),
+                Tables\Filters\Filter::make('no_pi_document')
+                    ->query(fn (Builder $query): Builder => $query->whereNull('pi_document'))
+                    ->label('No PI Document'),
                 Tables\Filters\Filter::make('has_voiceflow_sessions')
                     ->query(fn (Builder $query): Builder => $query->whereHas('voiceflowSessions'))
                     ->label('Has Voiceflow Sessions'),

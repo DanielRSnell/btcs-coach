@@ -13,6 +13,8 @@ window.AdaptiveCardExtension = {
         let vfrcChat = null;
         let systemResponseElement = null;
         
+        // window.chatSetup(element);
+
         while (currentElement && currentElement.parentElement) {
             currentElement = currentElement.parentElement;
             

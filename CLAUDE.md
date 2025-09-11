@@ -122,6 +122,12 @@ Recent commits focus on multi-session chat functionality. When working on sessio
 - **TypeScript**: Strict mode enabled, path aliases configured
 - **PHP**: PSR-4 autoloading, Pest for testing
 
+### Critical Build Requirements
+- **YOU MUST REBUILD THE APP AFTER MAKING REACT CHANGES**: Always run `npm run build` after modifying any React/TypeScript files in `resources/js/`
+- This includes changes to pages, components, layouts, or any frontend assets
+- The build process compiles TypeScript, processes Tailwind CSS, and generates production assets
+- Failure to rebuild will result in changes not being reflected in the browser
+
 ### H.G. Fenton Branding
 - Primary Blue: `#1e4a72`
 - Accent Orange/Gold: `#e67e00`

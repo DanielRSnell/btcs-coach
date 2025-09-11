@@ -1,12 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Calendar, Clock } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { MessageCircle, Calendar, Clock, ThumbsUp, ThumbsDown, Mic } from 'lucide-react';
 
-// Extend window interface for Voiceflow
+// Extend window interface for Voiceflow and custom functions
 declare global {
     interface Window {
         voiceflow?: {
@@ -16,6 +18,22 @@ declare global {
                 destroy?: () => void;
             };
         };
+        refreshSessionsList?: () => void;
+        ChatInfo?: {
+            name?: string;
+            payload?: any;
+        };
+        chatContext?: any;
+    }
+    
+    namespace JSX {
+        interface IntrinsicElements {
+            'elevenlabs-convai': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+                'agent-id'?: string;
+                'dynamic-variables'?: string;
+                style?: React.CSSProperties;
+            };
+        }
     }
 }
 
@@ -36,6 +54,7 @@ interface User {
 
 interface Session {
     session_id: string;
+    name?: string; // The custom name for the session
     project_id?: string; // The project ID (localStorage key without prefix)
     value?: any; // The full localStorage data for this session
     created_at: string;
@@ -48,9 +67,11 @@ interface SessionsProps {
     sessions: Record<string, Session>;
     currentSessionId?: string;
     currentSession?: Session;
+    newSessionName?: string;
+    newSessionStatus?: string;
 }
 
-export default function Sessions({ user, sessions, currentSessionId, currentSession }: SessionsProps) {
+export default function Sessions({ user, sessions, currentSessionId, currentSession, newSessionName, newSessionStatus }: SessionsProps) {
     // DEBUG: Log all props received from server
     console.log('🔍 Sessions component loaded with data:');
     console.log('👤 User received:', user?.name, user?.id);
@@ -60,12 +81,70 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
     console.log('📊 Sessions count:', sessions ? Object.keys(sessions).length : 0);
     console.log('🎯 Current Session ID received:', currentSessionId);
     console.log('🎯 Current Session data received:', currentSession);
+    console.log('🆕 New Session Name received:', newSessionName);
+    console.log('🆕 New Session Status received:', newSessionStatus);
     
     const { props } = usePage();
+    
+    // Check for audio mode in URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const isAudioMode = urlParams.get('mode') === 'audio';
+    console.log('🎵 Audio mode detected:', isAudioMode);
+    
+    // State for ElevenLabs dynamic variables
+    const [elevenLabsVariables, setElevenLabsVariables] = useState<any>({});
     const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
     const [localStorageListenerSetup, setLocalStorageListenerSetup] = useState(false);
     const [currentActiveSessionId, setCurrentActiveSessionId] = useState<string | null>(null);
     const [voiceflowInitialized, setVoiceflowInitialized] = useState(false);
+    const [pendingSessionName, setPendingSessionName] = useState<string | null>(newSessionName || null);
+    
+    // Feedback modal state
+    const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+    const [feedbackRating, setFeedbackRating] = useState<'positive' | 'negative' | null>(null);
+    const [feedbackComment, setFeedbackComment] = useState('');
+    const [submittingFeedback, setSubmittingFeedback] = useState(false);
+    
+    // Ref for ElevenLabs widget to set attributes directly
+    const elevenLabsRef = useRef<HTMLElement>(null);
+    
+    // Callback ref for container element (using dangerouslySetInnerHTML now)
+    const elevenLabsCallbackRef = useCallback((element: HTMLElement | null) => {
+        if (element && isAudioMode) {
+            console.log('🎯 ElevenLabs container element mounted');
+        }
+    }, [isAudioMode]);
+
+    // Create global refresh function for external access
+    const refreshSessionsList = () => {
+        console.log('🔄 External refresh requested - reloading sessions data...');
+        console.log('🔄 Current sessions before reload:', sessions);
+        console.log('🔄 Sessions count before reload:', Object.keys(sessions).length);
+        
+        router.reload({ 
+            only: ['sessions'],
+            onSuccess: (page) => {
+                console.log('✅ Reload successful - new page data:', page);
+                console.log('✅ New sessions data:', page.props.sessions);
+                console.log('✅ New sessions count:', Object.keys(page.props.sessions || {}).length);
+            },
+            onError: (errors) => {
+                console.error('❌ Reload failed:', errors);
+            }
+        });
+    };
+
+    // Attach refresh function to window for global access
+    useEffect(() => {
+        window.refreshSessionsList = refreshSessionsList;
+        console.log('✅ Global function window.refreshSessionsList() is now available');
+        
+        // Cleanup function to remove from window when component unmounts
+        return () => {
+            delete window.refreshSessionsList;
+            console.log('🧹 Cleaned up window.refreshSessionsList()');
+        };
+    }, [refreshSessionsList]);
 
     // Initialize Voiceflow script on component mount
     useEffect(() => {
@@ -119,34 +198,25 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
             const targetElement = document.getElementById('main-voiceflow-chat');
             console.log('🎯 Target element for Voiceflow:', targetElement);
             
-            // Debug: Log the user payload being sent to Voiceflow
-            const payload = {
-                id: user?.id || 0,
-                name: user?.name || 'Anonymous',
-                email: user?.email || '',
-                role: user?.role || 'member',
-                pi_behavioral_pattern_id: user?.pi_behavioral_pattern_id || null,
-                pi_behavioral_pattern: user?.pi_behavioral_pattern || null,
-                pi_raw_scores: user?.pi_raw_scores || null,
-                pi_assessed_at: user?.pi_assessed_at || null,
-                pi_notes: user?.pi_notes || null,
-                pi_profile: user?.pi_profile || null,
-                has_pi_assessment: user?.has_pi_assessment || false,
-                has_pi_profile: user?.has_pi_profile || false
-            };
+            // Use the existing ChatInfo payload (already created in useEffect)
+            const payload = window.ChatInfo?.payload || {};
+            const chatName = window.ChatInfo?.name || '';
             
             console.log('🚀 Voiceflow User Payload:', JSON.stringify(payload, null, 2));
+            console.log('🚀 Voiceflow Chat Name:', chatName);
             
             window.voiceflow.chat.load({
                 verify: { projectID: '686331bc96acfa1dd62f6fd5' },
                 url: 'https://general-runtime.voiceflow.com',
                 versionID: 'production',
                 assistant: {
+                    type: 'chat',
+                    banner: {
+                        title: chatName
+                    },
                     extensions: [window.AdaptiveCardExtension],
-                    stylesheet: '/voiceflow.css?v=' + new Date().toISOString().replace(/[:.]/g, '-')
-                },
-                voice: {
-                    url: "https://runtime-api.voiceflow.com"
+                    stylesheet: '/voiceflow.css?v=' + new Date().toISOString().replace(/[:.]/g, '-'),
+                    inputPlaceholder: "What's my PI Profile?"
                 },
                 render: {
                     mode: 'embedded',
@@ -163,6 +233,52 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
             
             console.log('✅ CHAT LOADED: Voiceflow chat loaded successfully');
             setVoiceflowInitialized(true);
+            
+            // After Voiceflow loads, monitor for new localStorage entries
+            // This ensures we catch sessions created during chat initialization
+            let attempts = 0;
+            const maxAttempts = 10;
+            const checkForNewSessions = () => {
+                attempts++;
+                const voiceflowKeys = Object.keys(localStorage).filter(key => key.startsWith('voiceflow-session-'));
+                console.log(`🔄 POST-VOICEFLOW SCAN (attempt ${attempts}): Found ${voiceflowKeys.length} localStorage sessions`);
+                
+                if (voiceflowKeys.length > 0) {
+                    console.log('✅ New localStorage sessions detected, running scan...');
+                    console.log('🎯 Pending session name for registration:', pendingSessionName);
+                    console.log('🎯 New session name from props:', newSessionName);
+                    checkLocalStorageSessions();
+                } else if (attempts < maxAttempts) {
+                    // Check again in 500ms
+                    setTimeout(checkForNewSessions, 500);
+                } else {
+                    console.log('⏰ Max attempts reached, no new sessions found after Voiceflow load');
+                }
+            };
+            
+            // Start checking 1 second after Voiceflow loads
+            setTimeout(checkForNewSessions, 1000);
+            
+            // If this is a new session (has pendingSessionName), also try direct registration
+            if (pendingSessionName) {
+                console.log('🎯 NEW SESSION FLOW: Detected pendingSessionName, setting up direct registration...');
+                setTimeout(() => {
+                    console.log('🎯 NEW SESSION FLOW: Attempting direct registration for new session...');
+                    const voiceflowKeys = Object.keys(localStorage).filter(key => key.startsWith('voiceflow-session-'));
+                    if (voiceflowKeys.length > 0) {
+                        console.log('🎯 NEW SESSION FLOW: Found localStorage entries, processing...');
+                        voiceflowKeys.forEach(async (key) => {
+                            const sessionValue = localStorage.getItem(key);
+                            if (sessionValue) {
+                                console.log(`🎯 NEW SESSION FLOW: Processing ${key} with pending name "${pendingSessionName}"`);
+                                await processLocalStorageSession(key, sessionValue);
+                            }
+                        });
+                    } else {
+                        console.log('🎯 NEW SESSION FLOW: No localStorage entries found yet');
+                    }
+                }, 2000); // Wait 2 seconds for Voiceflow to create localStorage
+            }
         } else {
             console.error('❌ VOICEFLOW MISSING: Voiceflow widget failed to load - missing window.voiceflow');
             const chatElement = document.getElementById('main-voiceflow-chat');
@@ -181,13 +297,164 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
         }
     };
 
-    // Initialize Voiceflow when component mounts
+    // Initialize ChatInfo and mode-specific components
     useEffect(() => {
-        console.log('🔄 COMPONENT MOUNT: Initializing Voiceflow...');
-        console.log('👤 User:', user?.name, user?.id);
-        console.log('📍 Current Session ID:', currentSessionId);
-        initializeVoiceflow();
-    }, [user]);
+        // ALWAYS create window.ChatInfo regardless of mode
+        const payload = {
+            id: user?.id || 0,
+            name: user?.name || 'Anonymous',
+            email: user?.email || '',
+            role: user?.role || 'member',
+            pi_behavioral_pattern_id: user?.pi_behavioral_pattern_id || null,
+            pi_behavioral_pattern: user?.pi_behavioral_pattern || null,
+            pi_raw_scores: user?.pi_raw_scores || null,
+            pi_assessed_at: user?.pi_assessed_at || null,
+            pi_notes: user?.pi_notes || null,
+            pi_profile: user?.pi_profile || null,
+            has_pi_assessment: user?.has_pi_assessment || false,
+            has_pi_profile: user?.has_pi_profile || false
+        };
+
+        const chatName = currentSession?.name || pendingSessionName || '';
+
+        window.ChatInfo = {
+            name: chatName,
+            payload: payload
+        };
+
+        console.log('✅ window.ChatInfo created for', isAudioMode ? 'AUDIO' : 'TEXT', 'mode:', window.ChatInfo);
+
+        // Set up audio mode specific features
+        if (isAudioMode) {
+            // Create window.chatContext with combined payload and localStorage
+            const payload = window.ChatInfo?.payload || {};
+            let voiceflowLocalStorage = {};
+            
+            const voiceflowKeys = Object.keys(localStorage).filter(key => key.startsWith('voiceflow-session-'));
+            if (voiceflowKeys.length > 0) {
+                const sessionValue = localStorage.getItem(voiceflowKeys[0]);
+                if (sessionValue) {
+                    try {
+                        voiceflowLocalStorage = JSON.parse(sessionValue);
+                    } catch (e) {
+                        console.warn('Failed to parse voiceflow localStorage:', e);
+                    }
+                }
+            }
+            
+            window.chatContext = { ...payload, ...voiceflowLocalStorage };
+            console.log('✅ window.chatContext created:', window.chatContext);
+            
+            // Use MutationObserver to detect elevenlabs-convai element
+            const setupElevenLabsObserver = () => {
+                console.log('🔍 Setting up MutationObserver for ElevenLabs widget...');
+                
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        mutation.addedNodes.forEach((node) => {
+                            if (node.nodeType === Node.ELEMENT_NODE) {
+                                const element = node as Element;
+                                
+                                // Check if the added node is elevenlabs-convai or contains it
+                                let widget = null;
+                                if (element.tagName?.toLowerCase() === 'elevenlabs-convai') {
+                                    widget = element;
+                                } else {
+                                    widget = element.querySelector?.('elevenlabs-convai');
+                                }
+                                
+                                if (widget) {
+                                    console.log('🎙️ ElevenLabs widget detected by MutationObserver!');
+                                    console.log('📦 Setting dynamic-variables attribute with chatContext:', window.chatContext);
+                                    
+                                    // Set dynamic-variables attribute directly with object
+                                    widget.setAttribute('dynamic-variables', window.chatContext);
+                                    
+                                    console.log('✅ dynamic-variables attribute set with object:', window.chatContext);
+                                    console.log('🔍 Widget HTML:', widget.outerHTML);
+                                    
+                                    // Also set up client tools
+                                    widget.addEventListener('elevenlabs-convai:call', (event) => {
+                                        console.log('🔧 ElevenLabs widget call event triggered');
+                                        console.log('📦 window.chatContext is available with data:', window.chatContext);
+                                        
+                                        event.detail.config.clientTools = {
+                                            getChatSessionData: () => {
+                                                console.log('📞 getChatSessionData called by ElevenLabs');
+                                                console.log('📦 window.chatContext is available with data:', window.chatContext);
+                                                return window.chatContext;
+                                            }
+                                        };
+                                        
+                                        console.log('✅ ElevenLabs client tools configured');
+                                    });
+                                }
+                            }
+                        });
+                    });
+                });
+                
+                // Start observing
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+                
+                console.log('👀 MutationObserver started, watching for ElevenLabs widget...');
+                
+                // Also check if widget already exists
+                const existingWidget = document.querySelector('elevenlabs-convai');
+                if (existingWidget) {
+                    console.log('🎙️ ElevenLabs widget already exists!');
+                    console.log('📦 Setting dynamic-variables attribute with chatContext:', window.chatContext);
+                    
+                    existingWidget.setAttribute('dynamic-variables', window.chatContext);
+                    
+                    console.log('✅ dynamic-variables attribute set on existing widget:', window.chatContext);
+                    console.log('🔍 Widget HTML:', existingWidget.outerHTML);
+                }
+            };
+            
+            setupElevenLabsObserver();
+        }
+
+        if (!isAudioMode) {
+            console.log('🔄 COMPONENT MOUNT: Initializing Voiceflow...');
+            console.log('👤 User:', user?.name, user?.id);
+            console.log('📍 Current Session ID:', currentSessionId);
+            initializeVoiceflow();
+        } else {
+            console.log('🎵 AUDIO MODE: Loading ElevenLabs ConvAI widget script...');
+            // Load ElevenLabs ConvAI widget script
+            const widgetScript = document.createElement('script');
+            widgetScript.src = 'https://unpkg.com/@elevenlabs/convai-widget-embed';
+            widgetScript.async = true;
+            widgetScript.type = 'text/javascript';
+            document.body.appendChild(widgetScript);
+
+            // Load ElevenLabs styling and observer script
+            const styleScript = document.createElement('script');
+            styleScript.src = '/eleven-labs.js';
+            styleScript.async = true;
+            styleScript.type = 'text/javascript';
+            document.body.appendChild(styleScript);
+
+            console.log('🎨 AUDIO MODE: Loading ElevenLabs styling script...');
+
+            // Cleanup function will be handled by useEffect return
+            return () => {
+                // Cleanup scripts on unmount
+                if (document.body.contains(widgetScript)) {
+                    console.log('🧹 AUDIO MODE: Cleaning up ElevenLabs widget script');
+                    document.body.removeChild(widgetScript);
+                }
+                if (document.body.contains(styleScript)) {
+                    console.log('🧹 AUDIO MODE: Cleaning up ElevenLabs styling script');
+                    document.body.removeChild(styleScript);
+                }
+            };
+        }
+    }, [user, isAudioMode]);
 
     // Note: Since we're using full page reloads for session switching (window.location.href),
     // we don't need complex reinitialization logic here. Each session switch will be a fresh page load.
@@ -364,6 +631,8 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
                 // 🆕 NEW SESSION → REGISTER as new session  
                 console.log(`🆕 🆕 NEW SESSION DETECTED: userID "${sessionUserID}" NOT found in database`);
                 console.log(`📝 📝 REGISTERING: Creating new session record...`);
+                console.log(`🎯 Using pending session name: "${pendingSessionName}"`);
+                console.log(`🎯 Registration triggered from: ${new Error().stack?.split('\n')[1]?.trim()}`);
                 
                 const registrationData = {
                     project_id: projectId,
@@ -371,7 +640,8 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
                         last_turn: sessionData, // Store the full localStorage value
                         source: 'localStorage_sync',
                         detected_at: new Date().toISOString()
-                    }
+                    },
+                    session_name: pendingSessionName
                 };
                 
                 console.log(`📋 Registration details:`, {
@@ -386,11 +656,25 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
                 if (registerResult?.success) {
                     console.log(`✅ ✅ REGISTRATION SUCCESS: New session "${sessionUserID}" created in database`);
                     console.log(`🎉 🎉 NEW SESSION ADDED: Refreshing sidebar to show the new session...`);
+                    console.log(`📊 Registered session data:`, registerResult);
+                    
+                    // Clear the pending session name after successful registration
+                    setPendingSessionName(null);
                     
                     // Refresh the page to show new session in sidebar
-                    router.reload({ only: ['sessions'] });
+                    console.log('🔄 Triggering sessions list refresh...');
+                    router.reload({ 
+                        only: ['sessions'],
+                        onSuccess: () => {
+                            console.log('✅ Sessions list refreshed successfully');
+                        },
+                        onError: (errors) => {
+                            console.error('❌ Failed to refresh sessions list:', errors);
+                        }
+                    });
                 } else if (registerResult?.error) {
                     console.error(`❌ ❌ REGISTRATION FAILED: Could not create session "${sessionUserID}":`, registerResult.error);
+                    console.error(`❌ Full error details:`, registerResult);
                 }
             }
             
@@ -418,8 +702,7 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
     // Value: {"userID": "cmeu78kdg00003b6j3c91yb1d", "turns": [...], "status": "ACTIVE"}
     // Action: Check if userID "cmeu78kdg00003b6j3c91yb1d" exists → Update or Register
     
-    useEffect(() => {
-        const checkLocalStorageSessions = async () => {
+    const checkLocalStorageSessions = async () => {
             console.log('🔍 🚀 🚀 STARTING INITIAL LOCALSTORAGE SCAN...');
             console.log('🔍 Scanning for keys matching pattern: voiceflow-session-*');
             
@@ -458,6 +741,7 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
             console.log('═══════════════════════════════════════════════════════════════════');
         };
 
+    useEffect(() => {
         checkLocalStorageSessions();
     }, []);
 
@@ -532,18 +816,72 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
 
         window.addEventListener('localStorageChange', handleCustomStorageChange as EventListener);
         
+        // Add polling to catch changes that don't trigger our custom events
+        // This is necessary because Voiceflow might not use standard localStorage.setItem
+        const pollForChanges = setInterval(() => {
+            console.log('🔍 Polling for new localStorage sessions...');
+            
+            const currentVoiceflowKeys = Object.keys(localStorage).filter(key => 
+                key.startsWith('voiceflow-session-')
+            );
+            
+            // Check if any new keys appeared since last check
+            currentVoiceflowKeys.forEach(key => {
+                const sessionValue = localStorage.getItem(key);
+                if (sessionValue) {
+                    try {
+                        const sessionData = JSON.parse(sessionValue);
+                        const userID = sessionData.userID;
+                        
+                        // If this userID is not in our current sessions, it's new
+                        if (userID && !sessions[userID]) {
+                            console.log(`🆕 NEW SESSION DETECTED via polling: ${key} with userID: ${userID}`);
+                            processLocalStorageSession(key, sessionValue);
+                            identifyCurrentActiveSession();
+                        }
+                    } catch (parseError) {
+                        console.warn(`⚠️ Could not parse session during polling: ${key}`, parseError);
+                    }
+                }
+            });
+        }, 2000); // Check every 2 seconds
+
         setLocalStorageListenerSetup(true);
-        console.log('✅ localStorage listeners set up successfully');
+        console.log('✅ localStorage listeners and polling set up successfully');
 
         // Cleanup function
         return () => {
             window.removeEventListener('storage', handleStorageChange);
             window.removeEventListener('localStorageChange', handleCustomStorageChange as EventListener);
+            clearInterval(pollForChanges);
             
             // Restore original localStorage.setItem
             localStorage.setItem = originalSetItem;
         };
     }, [localStorageListenerSetup]);
+
+    // Set up window.chatActions for message voting
+    useEffect(() => {
+        console.log('🗳️ Setting up window.chatActions...');
+        
+        window.chatActions = {
+            upVote: (messageHtml: string) => {
+                console.log('👍 Message upvoted:', messageHtml.substring(0, 100) + '...');
+                // TODO: Implement actual voting logic (API call, etc.)
+            },
+            downVote: (messageHtml: string) => {
+                console.log('👎 Message downvoted:', messageHtml.substring(0, 100) + '...');
+                // TODO: Implement actual voting logic (API call, etc.)
+            }
+        };
+        
+        console.log('✅ window.chatActions set up successfully');
+        
+        // Cleanup function
+        return () => {
+            delete window.chatActions;
+        };
+    }, []);
 
     const formatSessionDate = (dateString: string) => {
         try {
@@ -601,6 +939,227 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
         }
     };
 
+    // Handle feedback submission
+    const handleFeedbackSubmit = async () => {
+        if (!feedbackRating || !currentActiveSessionId) {
+            console.error('Missing feedback rating or active session ID');
+            return;
+        }
+
+        setSubmittingFeedback(true);
+
+        try {
+            console.log('📝 Submitting feedback', {
+                session_id: currentActiveSessionId,
+                rating: feedbackRating,
+                comment: feedbackComment
+            });
+
+            const response = await apiCall('/api/sessions/feedback', {
+                session_id: currentActiveSessionId,
+                rating: feedbackRating,
+                comment: feedbackComment.trim() || null
+            });
+
+            if (response?.success) {
+                console.log('✅ Feedback submitted successfully');
+                
+                // Close modal and reset state
+                setFeedbackModalOpen(false);
+                setFeedbackRating(null);
+                setFeedbackComment('');
+                
+                // Show success message (could be replaced with a toast)
+                alert('Thank you for your feedback!');
+            } else {
+                console.error('❌ Feedback submission failed:', response);
+                alert('Failed to submit feedback. Please try again.');
+            }
+        } catch (error) {
+            console.error('❌ Error submitting feedback:', error);
+            alert('An error occurred while submitting feedback.');
+        } finally {
+            setSubmittingFeedback(false);
+        }
+    };
+
+    // Handle thumbs up click
+    const handleThumbsUp = () => {
+        if (!currentActiveSessionId) {
+            console.warn('No active session to provide feedback for');
+            return;
+        }
+        
+        console.log('👍 Thumbs up clicked for session:', currentActiveSessionId);
+        setFeedbackRating('positive');
+        setFeedbackModalOpen(true);
+    };
+
+    // Handle thumbs down click
+    const handleThumbsDown = () => {
+        if (!currentActiveSessionId) {
+            console.warn('No active session to provide feedback for');
+            return;
+        }
+        
+        console.log('👎 Thumbs down clicked for session:', currentActiveSessionId);
+        setFeedbackRating('negative');
+        setFeedbackModalOpen(true);
+    };
+
+    // Build full payload with context structure for ElevenLabs
+    const buildElevenLabsVariables = () => {
+        try {
+            // Get the base payload from ChatInfo (should always be available now)
+            const basePayload = window.ChatInfo?.payload || {};
+            console.log('🎯 Base payload from ChatInfo:', basePayload);
+            
+            // Get Voiceflow localStorage data if available
+            let voiceflowData = {};
+            
+            // Look for current active session's localStorage data
+            const voiceflowKeys = Object.keys(localStorage).filter(key => key.startsWith('voiceflow-session-'));
+            console.log('🔍 Found voiceflow localStorage keys:', voiceflowKeys);
+            
+            if (voiceflowKeys.length > 0) {
+                // Try to find the localStorage entry for the current active session
+                let currentSessionData = null;
+                
+                if (currentActiveSessionId) {
+                    console.log('🎯 Looking for localStorage data for active session:', currentActiveSessionId);
+                    // Look for localStorage entry that matches current active session
+                    for (const key of voiceflowKeys) {
+                        const sessionValue = localStorage.getItem(key);
+                        if (sessionValue) {
+                            try {
+                                const parsed = JSON.parse(sessionValue);
+                                if (parsed.userID === currentActiveSessionId) {
+                                    currentSessionData = parsed;
+                                    console.log('✅ Found matching localStorage session data');
+                                    break;
+                                }
+                            } catch (e) {
+                                console.warn('Failed to parse localStorage session:', key, e);
+                            }
+                        }
+                    }
+                }
+                
+                // If no specific session found, use the first available
+                if (!currentSessionData && voiceflowKeys.length > 0) {
+                    console.log('🔄 No active session match, using first available localStorage session');
+                    const sessionValue = localStorage.getItem(voiceflowKeys[0]);
+                    if (sessionValue) {
+                        try {
+                            currentSessionData = JSON.parse(sessionValue);
+                            console.log('✅ Using first available session data');
+                        } catch (e) {
+                            console.warn('Failed to parse first localStorage session:', e);
+                        }
+                    }
+                }
+                
+                if (currentSessionData) {
+                    voiceflowData = {
+                        voiceflow_session_id: currentSessionData.userID,
+                        voiceflow_status: currentSessionData.status,
+                        voiceflow_turn_count: currentSessionData.turns?.length || 0,
+                        voiceflow_project_id: currentSessionData.projectID,
+                        voiceflow_last_updated: new Date().toISOString()
+                    };
+                    console.log('📦 Voiceflow data extracted:', voiceflowData);
+                } else {
+                    console.log('⚠️ No valid localStorage session data found');
+                }
+            } else {
+                console.log('📭 No voiceflow localStorage keys found');
+            }
+
+            // Create full context structure with all data
+            const fullVariables = {
+                context: {
+                    // User data
+                    user_id: basePayload.id || 0,
+                    user_name: basePayload.name || "Anonymous",
+                    user_email: basePayload.email || "",
+                    user_role: basePayload.role || "member",
+                    
+                    // PI Assessment data
+                    pi_behavioral_pattern_id: basePayload.pi_behavioral_pattern_id || null,
+                    pi_behavioral_pattern: basePayload.pi_behavioral_pattern || null,
+                    pi_raw_scores: basePayload.pi_raw_scores || null,
+                    pi_assessed_at: basePayload.pi_assessed_at || null,
+                    pi_notes: basePayload.pi_notes || null,
+                    pi_profile: basePayload.pi_profile || null,
+                    has_pi_assessment: basePayload.has_pi_assessment || false,
+                    has_pi_profile: basePayload.has_pi_profile || false,
+                    
+                    // Voiceflow session data
+                    voiceflow_session_id: voiceflowData.voiceflow_session_id || null,
+                    voiceflow_status: voiceflowData.voiceflow_status || null,
+                    voiceflow_turn_count: voiceflowData.voiceflow_turn_count || 0,
+                    voiceflow_project_id: voiceflowData.voiceflow_project_id || null,
+                    voiceflow_last_updated: voiceflowData.voiceflow_last_updated || null,
+                    
+                    // Mode and session info
+                    audio_mode: true,
+                    current_session_id: currentActiveSessionId || null,
+                    timestamp: new Date().toISOString()
+                }
+            };
+
+            console.log('🎙️ ElevenLabs full context variables built:', fullVariables);
+            
+            return fullVariables;
+        } catch (error) {
+            console.error('❌ Error building ElevenLabs variables:', error);
+            return {
+                context: {
+                    error: 'Failed to build variables',
+                    timestamp: new Date().toISOString()
+                }
+            };
+        }
+    };
+
+    // Update ElevenLabs variables when relevant data changes
+    useEffect(() => {
+        if (isAudioMode) {
+            const variables = buildElevenLabsVariables();
+            setElevenLabsVariables(variables);
+            console.log('🔄 Updated ElevenLabs variables:', variables);
+        }
+    }, [isAudioMode, currentActiveSessionId, user]);
+
+    // Monitor localStorage changes for ElevenLabs variables updates
+    useEffect(() => {
+        if (!isAudioMode) return;
+
+        const updateElevenLabsFromStorage = () => {
+            const variables = buildElevenLabsVariables();
+            setElevenLabsVariables(variables);
+            console.log('🔄 ElevenLabs variables updated from localStorage change:', variables);
+        };
+
+        // Set up interval to periodically update variables in audio mode
+        const interval = setInterval(updateElevenLabsFromStorage, 5000); // Every 5 seconds
+
+        // Also update when localStorage changes
+        const handleStorageChange = (event: StorageEvent) => {
+            if (event.key?.startsWith('voiceflow-session-')) {
+                updateElevenLabsFromStorage();
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+
+        // Cleanup
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('storage', handleStorageChange);
+        };
+    }, [isAudioMode, buildElevenLabsVariables]);
+
     return (
         <AppLayout>
             <Head title="Sessions" />
@@ -656,7 +1215,7 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
                                             >
                                                 <div className="flex items-start justify-between mb-2">
                                                     <div className="font-medium text-sm truncate flex-1">
-                                                        Session {sessionId.substring(sessionId.length - 8)}
+                                                        {session.name || `Session ${sessionId.substring(sessionId.length - 8)}`}
                                                         {currentActiveSessionId === sessionId && (
                                                             <span className="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
                                                                 Current
@@ -689,21 +1248,218 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
                 <div className="flex-1">
                     <Card className="h-full py-0">
                         <CardContent className="p-0 h-full">
-                            <div 
-                                id="main-voiceflow-chat" 
-                                className="h-full w-full rounded-lg overflow-hidden"
-                            >
-                                <div className="flex items-center justify-center h-full bg-gray-50">
-                                    <div className="text-center">
-                                        <MessageCircle className="h-8 w-8 mx-auto mb-4 text-gray-300" />
-                                        <p className="text-gray-500">Loading chat interface...</p>
+                            {isAudioMode ? (
+                                // ElevenLabs ConvAI component for audio mode
+                                <div className="h-full w-full rounded-lg overflow-hidden flex flex-col relative">
+                                    {/* Audio Chat Header */}
+                                    <div className="flex items-center p-4 bg-white">
+                                        {/* Left Side - Chat Icon */}
+                                        <div className="flex items-center gap-3">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600"
+                                                onClick={() => {
+                                                    console.log('💬 Switch to text chat');
+                                                    const currentUrl = new URL(window.location.href);
+                                                    currentUrl.searchParams.delete('mode');
+                                                    window.location.href = currentUrl.toString();
+                                                }}
+                                            >
+                                                <MessageCircle className="h-4 w-4" />
+                                            </Button>
+                                            
+                                            {/* Separator */}
+                                            <div className="w-px h-5 bg-gray-300"></div>
+                                            
+                                            {/* Chat Name */}
+                                            <h2 className="text-lg font-semibold text-gray-900">
+                                                {currentSession?.name || pendingSessionName || 'Audio Session'}
+                                            </h2>
+                                        </div>
+                                        
+                                        {/* Right Side - Feedback Buttons */}
+                                        <div className="flex items-center gap-2 ml-auto">
+                                            {/* Thumbs Up Button */}
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-600"
+                                                onClick={handleThumbsUp}
+                                            >
+                                                <ThumbsUp className="h-4 w-4" />
+                                            </Button>
+                                            
+                                            {/* Thumbs Down Button */}
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                                                onClick={handleThumbsDown}
+                                            >
+                                                <ThumbsDown className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Audio Widget Container */}
+                                    <div className="flex-1 relative">
+                                        <elevenlabs-convai 
+                                            ref={elevenLabsRef}
+                                            data-test="elevenlabs-convai"
+                                            agent-id="agent_0901k31ke64mf0w8me1gdwygb7ze"
+                                            style={{
+                                                display: 'block',
+                                                opacity: '0',
+                                                position: 'absolute',
+                                                top: '0',
+                                                left: '0',
+                                                width: '100%',
+                                                height: '100%',
+                                                minHeight: '400px',
+                                                border: 'none',
+                                                borderRadius: '0 0 8px 8px',
+                                                transition: 'opacity 0.5s ease-in-out'
+                                            }}
+                                        />
                                     </div>
                                 </div>
-                            </div>
+                            ) : (
+                                // Standard Voiceflow chat for text mode
+                                <div className="h-full w-full rounded-lg overflow-hidden flex flex-col relative">
+                                    {/* Text Chat Header */}
+                                    <div className="flex items-center p-4 bg-white">
+                                        {/* Left Side - Microphone Icon */}
+                                        <div className="flex items-center gap-3">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600"
+                                                onClick={() => {
+                                                    console.log('🎙️ Switch to audio mode');
+                                                    const currentUrl = new URL(window.location.href);
+                                                    currentUrl.searchParams.set('mode', 'audio');
+                                                    window.location.href = currentUrl.toString();
+                                                }}
+                                            >
+                                                <Mic className="h-4 w-4" />
+                                            </Button>
+                                            
+                                            {/* Separator */}
+                                            <div className="w-px h-5 bg-gray-300"></div>
+                                            
+                                            {/* Chat Name */}
+                                            <h2 className="text-lg font-semibold text-gray-900">
+                                                {currentSession?.name || pendingSessionName || 'Text Chat'}
+                                            </h2>
+                                        </div>
+                                        
+                                        {/* Right Side - Feedback Buttons */}
+                                        <div className="flex items-center gap-2 ml-auto">
+                                            {/* Thumbs Up Button */}
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-600"
+                                                onClick={handleThumbsUp}
+                                            >
+                                                <ThumbsUp className="h-4 w-4" />
+                                            </Button>
+                                            
+                                            {/* Thumbs Down Button */}
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                                                onClick={handleThumbsDown}
+                                            >
+                                                <ThumbsDown className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Voiceflow Chat Wrapper - takes remaining space */}
+                                    <div className="flex-1 relative">
+                                        {/* Voiceflow Chat Container */}
+                                        <div 
+                                            id="main-voiceflow-chat" 
+                                            className="absolute inset-0"
+                                        >
+                                            <div className="flex items-center justify-center h-full bg-gray-50">
+                                                <div className="text-center">
+                                                    <MessageCircle className="h-8 w-8 mx-auto mb-4 text-gray-300" />
+                                                    <p className="text-gray-500">Loading chat interface...</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>
             </div>
+
+            {/* Feedback Modal */}
+            <Dialog open={feedbackModalOpen} onOpenChange={setFeedbackModalOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {feedbackRating === 'positive' ? '👍 Share your positive feedback' : '👎 Help us improve'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {feedbackRating === 'positive' 
+                                ? 'We\'d love to hear what you enjoyed about this session!'
+                                : 'Let us know what went wrong so we can improve your experience.'
+                            }
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4">
+                        <div>
+                            <label htmlFor="feedback-comment" className="text-sm font-medium">
+                                {feedbackRating === 'positive' ? 'What did you like?' : 'What can we improve?'}
+                                {' '}(optional)
+                            </label>
+                            <Textarea
+                                id="feedback-comment"
+                                placeholder={feedbackRating === 'positive' 
+                                    ? 'Tell us what worked well...'
+                                    : 'Tell us what didn\'t work or what you expected...'
+                                }
+                                value={feedbackComment}
+                                onChange={(e) => setFeedbackComment(e.target.value)}
+                                className="mt-2"
+                                rows={4}
+                            />
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setFeedbackModalOpen(false);
+                                setFeedbackRating(null);
+                                setFeedbackComment('');
+                            }}
+                            disabled={submittingFeedback}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleFeedbackSubmit}
+                            disabled={submittingFeedback}
+                            className={feedbackRating === 'positive' 
+                                ? 'bg-green-600 hover:bg-green-700' 
+                                : 'bg-blue-600 hover:bg-blue-700'
+                            }
+                        >
+                            {submittingFeedback ? 'Submitting...' : 'Submit Feedback'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }
