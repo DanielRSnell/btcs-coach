@@ -44,7 +44,16 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? [
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                    'email' => $request->user()->email,
+                    'role' => $request->user()->role,
+                    'pi_chart_image' => $request->user()->getPiChartImageUrl(),
+                    'pi_behavioral_pattern' => $request->user()->pi_behavioral_pattern,
+                    'pi_assessed_at' => $request->user()->pi_assessed_at,
+                    'pi_notes' => $request->user()->pi_notes,
+                ] : null,
             ],
             'ziggy' => fn (): array => [
                 ...(new Ziggy)->toArray(),

@@ -123,9 +123,6 @@ class UserResource extends Resource
                                     ])
                                     ->addActionLabel('Add Behavior')
                                     ->collapsible()
-                                    ->itemLabel(fn ($state): ?string => 
-                                        is_array($state) ? ($state['behavior'] ?? null) : null
-                                    )
                                     ->formatStateUsing(function ($state) {
                                         if (!$state) return [];
                                         // Transform array of strings to array of objects for repeater
@@ -154,9 +151,6 @@ class UserResource extends Resource
                                     ])
                                     ->addActionLabel('Add Condition')
                                     ->collapsible()
-                                    ->itemLabel(fn ($state): ?string => 
-                                        is_array($state) ? ($state['condition'] ?? null) : null
-                                    )
                                     ->formatStateUsing(function ($state) {
                                         if (!$state) return [];
                                         return collect($state)->map(fn($item) => ['condition' => $item])->toArray();
@@ -175,9 +169,6 @@ class UserResource extends Resource
                                     ])
                                     ->addActionLabel('Add Condition to Avoid')
                                     ->collapsible()
-                                    ->itemLabel(fn ($state): ?string => 
-                                        is_array($state) ? ($state['condition'] ?? null) : null
-                                    )
                                     ->formatStateUsing(function ($state) {
                                         if (!$state) return [];
                                         return collect($state)->map(fn($item) => ['condition' => $item])->toArray();

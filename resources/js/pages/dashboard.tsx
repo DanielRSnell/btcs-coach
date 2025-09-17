@@ -96,9 +96,26 @@ export default function Dashboard({ user, stats, pendingActionItems, availableMo
                         </h2>
                         <p className="text-gray-600 mt-1">Ready to advance your PI and Situational Leadership skills?</p>
                     </div>
-                    <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="text-sm">
-                        {user.role === 'admin' ? 'Administrator' : 'Member'}
-                    </Badge>
+                    <div className="flex items-center gap-3">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                                console.log('🧪 Test button clicked - calling window.profile.chart.show() without parameters');
+                                if (window.profile?.chart?.show) {
+                                    // Test calling show() without parameters - should use current user
+                                    window.profile.chart.show();
+                                } else {
+                                    console.error('❌ window.profile.chart.show not available');
+                                }
+                            }}
+                        >
+                            View PI Chart
+                        </Button>
+                        <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="text-sm">
+                            {user.role === 'admin' ? 'Administrator' : 'Member'}
+                        </Badge>
+                    </div>
                 </div>
             }
         >

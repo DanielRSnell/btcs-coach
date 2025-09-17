@@ -42,6 +42,30 @@
         }
     }
 
+    function processStartCallButton(shadowRoot, shadowRootId) {
+        console.log(`📞 Looking for "Start a call" button in shadow DOM ${shadowRootId}...`);
+        
+        // Look for button with aria-label="Start a call"
+        const startCallButton = shadowRoot.querySelector('button[aria-label="Start a call"]');
+        
+        if (startCallButton) {
+            console.log('✅ Found "Start a call" button!');
+            
+            // Add the .start-call class if it doesn't already have it
+            if (!startCallButton.classList.contains('start-call')) {
+                startCallButton.classList.add('start-call');
+                console.log('🏷️ Added .start-call class to button');
+            }
+            
+            // Click the button automatically
+            console.log('🖱️ Clicking "Start a call" button...');
+            startCallButton.click();
+            console.log('✅ "Start a call" button clicked successfully');
+        } else {
+            console.log('⚠️ "Start a call" button not found yet, will try again when new elements are added');
+        }
+    }
+
     function processWidgetElements(shadowRoot) {
         if (!shadowRoot) return;
         
@@ -107,6 +131,9 @@
             }
         });
         
+        // Find and process the "Start a call" button
+        processStartCallButton(shadowRoot, shadowRootId);
+        
         // Inject the style element into shadow root (as a marker that we've processed this)
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = customStyles;
@@ -129,6 +156,11 @@
         
         // Set up continuous monitoring of this shadow root
         setupShadowDOMMonitoring(shadowRoot, shadowRootId);
+        
+        // Also try to find the start call button with a delay in case it loads later
+        setTimeout(() => {
+            processStartCallButton(shadowRoot, shadowRootId);
+        }, 1000);
     }
     
     function setupShadowDOMMonitoring(shadowRoot, shadowRootId) {
@@ -150,7 +182,9 @@
                         if (node.classList?.contains('shadow-lg') || 
                             node.querySelector?.('.shadow-lg') ||
                             (node.tagName === 'P' && node.classList?.contains('whitespace-nowrap')) ||
-                            node.querySelector?.('p.whitespace-nowrap')) {
+                            node.querySelector?.('p.whitespace-nowrap') ||
+                            (node.tagName === 'BUTTON' && node.getAttribute?.('aria-label') === 'Start a call') ||
+                            node.querySelector?.('button[aria-label="Start a call"]')) {
                             console.log(`🔄 New processable elements detected in shadow DOM ${shadowRootId}`);
                             needsReprocessing = true;
                         }
@@ -229,6 +263,9 @@
                 }
             });
         }
+        
+        // Look for start call button that might have appeared
+        processStartCallButton(shadowRoot, shadowRootId);
         
         // Check if widget needs to be faded in (in case it was reset)
         const elevenLabsElement = document.querySelector('elevenlabs-convai');

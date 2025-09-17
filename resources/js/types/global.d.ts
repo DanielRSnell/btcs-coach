@@ -15,7 +15,6 @@ declare global {
                 'action-text'?: string;
                 'start-call-text'?: string;
                 'listening-text'?: string;
-                'dynamic-variables'?: string;
                 style?: React.CSSProperties | string;
             };
         }

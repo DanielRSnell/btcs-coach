@@ -22,6 +22,7 @@ class SessionsController extends Controller
         // Check for new session parameters
         $sessionName = $request->query('name');
         $sessionStatus = $request->query('status');
+        $isAudioMode = $request->query('mode') === 'audio';
         
         return Inertia::render('Sessions', [
             'user' => [
@@ -35,12 +36,14 @@ class SessionsController extends Controller
                 'pi_assessed_at' => $user->pi_assessed_at,
                 'pi_notes' => $user->pi_notes,
                 'pi_profile' => $user->pi_profile,
+                'pi_chart_image' => $user->getPiChartImageUrl(),
                 'has_pi_assessment' => $user->hasPiAssessment(),
                 'has_pi_profile' => $user->hasPiProfile(),
             ],
             'sessions' => $sessions,
             'newSessionName' => $sessionName,
             'newSessionStatus' => $sessionStatus,
+            'isAudioMode' => $isAudioMode,
         ]);
     }
 
@@ -60,6 +63,8 @@ class SessionsController extends Controller
             $currentSession = $sessions[$sessionId];
         }
         
+        $isAudioMode = $request->query('mode') === 'audio';
+        
         return Inertia::render('Sessions', [
             'user' => [
                 'id' => $user->id,
@@ -72,12 +77,14 @@ class SessionsController extends Controller
                 'pi_assessed_at' => $user->pi_assessed_at,
                 'pi_notes' => $user->pi_notes,
                 'pi_profile' => $user->pi_profile,
+                'pi_chart_image' => $user->getPiChartImageUrl(),
                 'has_pi_assessment' => $user->hasPiAssessment(),
                 'has_pi_profile' => $user->hasPiProfile(),
             ],
             'sessions' => $sessions,
             'currentSessionId' => $sessionId,
             'currentSession' => $currentSession,
+            'isAudioMode' => $isAudioMode,
         ]);
     }
 

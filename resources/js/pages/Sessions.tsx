@@ -30,7 +30,6 @@ declare global {
         interface IntrinsicElements {
             'elevenlabs-convai': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
                 'agent-id'?: string;
-                'dynamic-variables'?: string;
                 style?: React.CSSProperties;
             };
         }
@@ -69,9 +68,10 @@ interface SessionsProps {
     currentSession?: Session;
     newSessionName?: string;
     newSessionStatus?: string;
+    isAudioMode?: boolean;
 }
 
-export default function Sessions({ user, sessions, currentSessionId, currentSession, newSessionName, newSessionStatus }: SessionsProps) {
+export default function Sessions({ user, sessions, currentSessionId, currentSession, newSessionName, newSessionStatus, isAudioMode }: SessionsProps) {
     // DEBUG: Log all props received from server
     console.log('🔍 Sessions component loaded with data:');
     console.log('👤 User received:', user?.name, user?.id);
@@ -83,16 +83,10 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
     console.log('🎯 Current Session data received:', currentSession);
     console.log('🆕 New Session Name received:', newSessionName);
     console.log('🆕 New Session Status received:', newSessionStatus);
+    console.log('🎵 Audio mode received from server:', isAudioMode);
     
     const { props } = usePage();
     
-    // Check for audio mode in URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const isAudioMode = urlParams.get('mode') === 'audio';
-    console.log('🎵 Audio mode detected:', isAudioMode);
-    
-    // State for ElevenLabs dynamic variables
-    const [elevenLabsVariables, setElevenLabsVariables] = useState<any>({});
     const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
     const [localStorageListenerSetup, setLocalStorageListenerSetup] = useState(false);
     const [currentActiveSessionId, setCurrentActiveSessionId] = useState<string | null>(null);
@@ -344,78 +338,6 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
             
             window.chatContext = { ...payload, ...voiceflowLocalStorage };
             console.log('✅ window.chatContext created:', window.chatContext);
-            
-            // Use MutationObserver to detect elevenlabs-convai element
-            const setupElevenLabsObserver = () => {
-                console.log('🔍 Setting up MutationObserver for ElevenLabs widget...');
-                
-                const observer = new MutationObserver((mutations) => {
-                    mutations.forEach((mutation) => {
-                        mutation.addedNodes.forEach((node) => {
-                            if (node.nodeType === Node.ELEMENT_NODE) {
-                                const element = node as Element;
-                                
-                                // Check if the added node is elevenlabs-convai or contains it
-                                let widget = null;
-                                if (element.tagName?.toLowerCase() === 'elevenlabs-convai') {
-                                    widget = element;
-                                } else {
-                                    widget = element.querySelector?.('elevenlabs-convai');
-                                }
-                                
-                                if (widget) {
-                                    console.log('🎙️ ElevenLabs widget detected by MutationObserver!');
-                                    console.log('📦 Setting dynamic-variables attribute with chatContext:', window.chatContext);
-                                    
-                                    // Set dynamic-variables attribute directly with object
-                                    widget.setAttribute('dynamic-variables', window.chatContext);
-                                    
-                                    console.log('✅ dynamic-variables attribute set with object:', window.chatContext);
-                                    console.log('🔍 Widget HTML:', widget.outerHTML);
-                                    
-                                    // Also set up client tools
-                                    widget.addEventListener('elevenlabs-convai:call', (event) => {
-                                        console.log('🔧 ElevenLabs widget call event triggered');
-                                        console.log('📦 window.chatContext is available with data:', window.chatContext);
-                                        
-                                        event.detail.config.clientTools = {
-                                            getChatSessionData: () => {
-                                                console.log('📞 getChatSessionData called by ElevenLabs');
-                                                console.log('📦 window.chatContext is available with data:', window.chatContext);
-                                                return window.chatContext;
-                                            }
-                                        };
-                                        
-                                        console.log('✅ ElevenLabs client tools configured');
-                                    });
-                                }
-                            }
-                        });
-                    });
-                });
-                
-                // Start observing
-                observer.observe(document.body, {
-                    childList: true,
-                    subtree: true
-                });
-                
-                console.log('👀 MutationObserver started, watching for ElevenLabs widget...');
-                
-                // Also check if widget already exists
-                const existingWidget = document.querySelector('elevenlabs-convai');
-                if (existingWidget) {
-                    console.log('🎙️ ElevenLabs widget already exists!');
-                    console.log('📦 Setting dynamic-variables attribute with chatContext:', window.chatContext);
-                    
-                    existingWidget.setAttribute('dynamic-variables', window.chatContext);
-                    
-                    console.log('✅ dynamic-variables attribute set on existing widget:', window.chatContext);
-                    console.log('🔍 Widget HTML:', existingWidget.outerHTML);
-                }
-            };
-            
-            setupElevenLabsObserver();
         }
 
         if (!isAudioMode) {
@@ -424,35 +346,7 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
             console.log('📍 Current Session ID:', currentSessionId);
             initializeVoiceflow();
         } else {
-            console.log('🎵 AUDIO MODE: Loading ElevenLabs ConvAI widget script...');
-            // Load ElevenLabs ConvAI widget script
-            const widgetScript = document.createElement('script');
-            widgetScript.src = 'https://unpkg.com/@elevenlabs/convai-widget-embed';
-            widgetScript.async = true;
-            widgetScript.type = 'text/javascript';
-            document.body.appendChild(widgetScript);
-
-            // Load ElevenLabs styling and observer script
-            const styleScript = document.createElement('script');
-            styleScript.src = '/eleven-labs.js';
-            styleScript.async = true;
-            styleScript.type = 'text/javascript';
-            document.body.appendChild(styleScript);
-
-            console.log('🎨 AUDIO MODE: Loading ElevenLabs styling script...');
-
-            // Cleanup function will be handled by useEffect return
-            return () => {
-                // Cleanup scripts on unmount
-                if (document.body.contains(widgetScript)) {
-                    console.log('🧹 AUDIO MODE: Cleaning up ElevenLabs widget script');
-                    document.body.removeChild(widgetScript);
-                }
-                if (document.body.contains(styleScript)) {
-                    console.log('🧹 AUDIO MODE: Cleaning up ElevenLabs styling script');
-                    document.body.removeChild(styleScript);
-                }
-            };
+            console.log('🎵 AUDIO MODE: Scripts will be loaded via PHP footer');
         }
     }, [user, isAudioMode]);
 
@@ -1007,158 +901,8 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
         setFeedbackModalOpen(true);
     };
 
-    // Build full payload with context structure for ElevenLabs
-    const buildElevenLabsVariables = () => {
-        try {
-            // Get the base payload from ChatInfo (should always be available now)
-            const basePayload = window.ChatInfo?.payload || {};
-            console.log('🎯 Base payload from ChatInfo:', basePayload);
-            
-            // Get Voiceflow localStorage data if available
-            let voiceflowData = {};
-            
-            // Look for current active session's localStorage data
-            const voiceflowKeys = Object.keys(localStorage).filter(key => key.startsWith('voiceflow-session-'));
-            console.log('🔍 Found voiceflow localStorage keys:', voiceflowKeys);
-            
-            if (voiceflowKeys.length > 0) {
-                // Try to find the localStorage entry for the current active session
-                let currentSessionData = null;
-                
-                if (currentActiveSessionId) {
-                    console.log('🎯 Looking for localStorage data for active session:', currentActiveSessionId);
-                    // Look for localStorage entry that matches current active session
-                    for (const key of voiceflowKeys) {
-                        const sessionValue = localStorage.getItem(key);
-                        if (sessionValue) {
-                            try {
-                                const parsed = JSON.parse(sessionValue);
-                                if (parsed.userID === currentActiveSessionId) {
-                                    currentSessionData = parsed;
-                                    console.log('✅ Found matching localStorage session data');
-                                    break;
-                                }
-                            } catch (e) {
-                                console.warn('Failed to parse localStorage session:', key, e);
-                            }
-                        }
-                    }
-                }
-                
-                // If no specific session found, use the first available
-                if (!currentSessionData && voiceflowKeys.length > 0) {
-                    console.log('🔄 No active session match, using first available localStorage session');
-                    const sessionValue = localStorage.getItem(voiceflowKeys[0]);
-                    if (sessionValue) {
-                        try {
-                            currentSessionData = JSON.parse(sessionValue);
-                            console.log('✅ Using first available session data');
-                        } catch (e) {
-                            console.warn('Failed to parse first localStorage session:', e);
-                        }
-                    }
-                }
-                
-                if (currentSessionData) {
-                    voiceflowData = {
-                        voiceflow_session_id: currentSessionData.userID,
-                        voiceflow_status: currentSessionData.status,
-                        voiceflow_turn_count: currentSessionData.turns?.length || 0,
-                        voiceflow_project_id: currentSessionData.projectID,
-                        voiceflow_last_updated: new Date().toISOString()
-                    };
-                    console.log('📦 Voiceflow data extracted:', voiceflowData);
-                } else {
-                    console.log('⚠️ No valid localStorage session data found');
-                }
-            } else {
-                console.log('📭 No voiceflow localStorage keys found');
-            }
 
-            // Create full context structure with all data
-            const fullVariables = {
-                context: {
-                    // User data
-                    user_id: basePayload.id || 0,
-                    user_name: basePayload.name || "Anonymous",
-                    user_email: basePayload.email || "",
-                    user_role: basePayload.role || "member",
-                    
-                    // PI Assessment data
-                    pi_behavioral_pattern_id: basePayload.pi_behavioral_pattern_id || null,
-                    pi_behavioral_pattern: basePayload.pi_behavioral_pattern || null,
-                    pi_raw_scores: basePayload.pi_raw_scores || null,
-                    pi_assessed_at: basePayload.pi_assessed_at || null,
-                    pi_notes: basePayload.pi_notes || null,
-                    pi_profile: basePayload.pi_profile || null,
-                    has_pi_assessment: basePayload.has_pi_assessment || false,
-                    has_pi_profile: basePayload.has_pi_profile || false,
-                    
-                    // Voiceflow session data
-                    voiceflow_session_id: voiceflowData.voiceflow_session_id || null,
-                    voiceflow_status: voiceflowData.voiceflow_status || null,
-                    voiceflow_turn_count: voiceflowData.voiceflow_turn_count || 0,
-                    voiceflow_project_id: voiceflowData.voiceflow_project_id || null,
-                    voiceflow_last_updated: voiceflowData.voiceflow_last_updated || null,
-                    
-                    // Mode and session info
-                    audio_mode: true,
-                    current_session_id: currentActiveSessionId || null,
-                    timestamp: new Date().toISOString()
-                }
-            };
 
-            console.log('🎙️ ElevenLabs full context variables built:', fullVariables);
-            
-            return fullVariables;
-        } catch (error) {
-            console.error('❌ Error building ElevenLabs variables:', error);
-            return {
-                context: {
-                    error: 'Failed to build variables',
-                    timestamp: new Date().toISOString()
-                }
-            };
-        }
-    };
-
-    // Update ElevenLabs variables when relevant data changes
-    useEffect(() => {
-        if (isAudioMode) {
-            const variables = buildElevenLabsVariables();
-            setElevenLabsVariables(variables);
-            console.log('🔄 Updated ElevenLabs variables:', variables);
-        }
-    }, [isAudioMode, currentActiveSessionId, user]);
-
-    // Monitor localStorage changes for ElevenLabs variables updates
-    useEffect(() => {
-        if (!isAudioMode) return;
-
-        const updateElevenLabsFromStorage = () => {
-            const variables = buildElevenLabsVariables();
-            setElevenLabsVariables(variables);
-            console.log('🔄 ElevenLabs variables updated from localStorage change:', variables);
-        };
-
-        // Set up interval to periodically update variables in audio mode
-        const interval = setInterval(updateElevenLabsFromStorage, 5000); // Every 5 seconds
-
-        // Also update when localStorage changes
-        const handleStorageChange = (event: StorageEvent) => {
-            if (event.key?.startsWith('voiceflow-session-')) {
-                updateElevenLabsFromStorage();
-            }
-        };
-
-        window.addEventListener('storage', handleStorageChange);
-
-        // Cleanup
-        return () => {
-            clearInterval(interval);
-            window.removeEventListener('storage', handleStorageChange);
-        };
-    }, [isAudioMode, buildElevenLabsVariables]);
 
     return (
         <AppLayout>

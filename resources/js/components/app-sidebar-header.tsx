@@ -16,7 +16,20 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
             </div>
             {showNewSessionButton && (
-                <div className="ml-auto">
+                <div className="ml-auto flex items-center gap-3">
+                    <button
+                        onClick={() => {
+                            console.log('🔍 Opening PI Chart modal for current user');
+                            if (window.profile?.chart?.show) {
+                                window.profile.chart.show();
+                            } else {
+                                console.error('❌ PI Chart modal not available');
+                            }
+                        }}
+                        className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                    >
+                        View PI Chart
+                    </button>
                     <NewSessionModal>
                         <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-blue-600 hover:bg-blue-700 text-white h-9 px-3">
                             <Plus className="h-4 w-4 mr-1" />

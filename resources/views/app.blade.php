@@ -52,7 +52,9 @@
     <body class="font-sans antialiased">
         @inertia
         
-        {{-- Load ElevenLabs observer last to ensure DOM is fully ready --}}
+        {{-- Load ElevenLabs scripts for audio mode only --}}
+        @if(isset($page['props']['isAudioMode']) && $page['props']['isAudioMode'])
+        <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async></script>
         <script>
             window.addEventListener('load', function() {
                 // Add a small delay to ensure everything is fully loaded
@@ -64,5 +66,7 @@
                 }, 100);
             });
         </script>
+        <script src="/elevenlabtools.js" async></script>
+        @endif
     </body>
 </html>

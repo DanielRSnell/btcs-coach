@@ -191,6 +191,18 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
+     * Get the full URL for the PI chart image.
+     */
+    public function getPiChartImageUrl(): ?string
+    {
+        if (!$this->pi_chart_image) {
+            return null;
+        }
+
+        return \Storage::disk('s3')->url($this->pi_chart_image);
+    }
+
+    /**
      * Get specific section of PI profile.
      */
     public function getPiProfileSection(string $section): ?array

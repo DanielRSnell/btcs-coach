@@ -40,7 +40,6 @@ declare global {
                 'action-text'?: string;
                 'start-call-text'?: string;
                 'listening-text'?: string;
-                'dynamic-variables'?: string;
                 style?: React.CSSProperties | string;
             };
         }
@@ -390,10 +389,9 @@ export default function ModuleChat({ module, user, actionItems = [] }: ModuleCha
                             {activeChatTab === 'elevenlabs' && (
                                 <div className="w-full h-full">
                                     <div className="w-full h-full relative">
-                                        <elevenlabs-convai 
+                                        <elevenlabs-convai
                                             ref={elevenLabsRef}
                                             agent-id="agent_0901k31ke64mf0w8me1gdwygb7ze"
-                                            dynamic-variables={JSON.stringify(elevenLabsVariables)}
                                             style={{
                                                 position: 'relative',
                                                 width: '100%',
