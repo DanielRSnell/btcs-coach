@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogPortal, DialogOverlay } from '@/components/ui/dialog';
 import { FileImage } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -87,7 +87,12 @@ export default function PIChartModal({ user: initialUser }: PIChartModalProps) {
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DialogPortal>
+                <DialogOverlay
+                    className="backdrop-blur-md bg-black/90"
+                    style={{ zIndex: 99999999999999998 }}
+                />
+                <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto" style={{ zIndex: 99999999999999999 }}>
                 <DialogHeader>
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-blue-100 rounded-lg">
@@ -226,7 +231,8 @@ export default function PIChartModal({ user: initialUser }: PIChartModalProps) {
                         )}
                     </div>
                 )}
-            </DialogContent>
+                </DialogContent>
+            </DialogPortal>
         </Dialog>
     );
 }

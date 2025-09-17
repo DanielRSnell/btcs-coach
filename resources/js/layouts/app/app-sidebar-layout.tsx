@@ -3,6 +3,7 @@ import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import PIChartModal from '@/components/PIChartModal';
+import PIDrawer from '@/components/PIChatDrawer';
 import { type BreadcrumbItem } from '@/types';
 import { type PropsWithChildren } from 'react';
 import { usePage } from '@inertiajs/react';
@@ -23,6 +24,9 @@ export default function AppSidebarLayout({ children, breadcrumbs = [] }: PropsWi
 
             {/* Global PI Chart Modal */}
             <PIChartModal user={user} />
+
+            {/* Global PI Drawer */}
+            <PIDrawer user={user} />
         </AppShell>
     );
 }
