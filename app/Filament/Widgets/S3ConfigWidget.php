@@ -44,12 +44,12 @@ class S3ConfigWidget extends BaseWidget
                 ->color('info'),
 
             // Security status
-            Stat::make('Access Key', $this->shortenSecret(config('filesystems.disks.s3.key')))
+            Stat::make('Access Key', $this->maskSecret(config('filesystems.disks.s3.key')))
                 ->description('S3 access key')
                 ->descriptionIcon('heroicon-m-key')
                 ->color($this->hasValue(config('filesystems.disks.s3.key')) ? 'success' : 'danger'),
 
-            Stat::make('Secret Key', $this->shortenSecret(config('filesystems.disks.s3.secret')))
+            Stat::make('Secret Key', $this->maskSecret(config('filesystems.disks.s3.secret')))
                 ->description('S3 secret key')
                 ->descriptionIcon('heroicon-m-lock-closed')
                 ->color($this->hasValue(config('filesystems.disks.s3.secret')) ? 'success' : 'danger'),
