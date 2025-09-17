@@ -14,6 +14,7 @@ document.addEventListener('elevenlabs-convai:call', (event) => {
         },
         showUsersPIChart: () => {
             window.profile.chart.show();
+            return true;
         }
     };
     

@@ -3,7 +3,7 @@ import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { type User } from '@/types';
 import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings } from 'lucide-react';
+import { LogOut, Settings, BarChart3 } from 'lucide-react';
 
 interface UserMenuContentProps {
     user: User;
@@ -26,6 +26,14 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+                {user?.role === 'admin' && (
+                    <DropdownMenuItem asChild>
+                        <Link className="block w-full" href={route('analytics')} as="button" prefetch onClick={cleanup}>
+                            <BarChart3 className="mr-2" />
+                            Analytics
+                        </Link>
+                    </DropdownMenuItem>
+                )}
                 <DropdownMenuItem asChild>
                     <Link className="block w-full" href={route('profile.edit')} as="button" prefetch onClick={cleanup}>
                         <Settings className="mr-2" />
