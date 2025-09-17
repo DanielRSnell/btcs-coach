@@ -2,74 +2,32 @@
 
 namespace App\Filament\Widgets;
 
-use Filament\Widgets\StatsOverviewWidget as BaseWidget;
-use Filament\Widgets\StatsOverviewWidget\Stat;
+use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Storage;
 
-class S3ConfigWidget extends BaseWidget
+class S3ConfigWidget extends Widget
 {
-    protected function getStats(): array
+    protected static string $view = 'filament.widgets.s3-config-widget';
+
+    protected function getViewData(): array
     {
         return [
-            Stat::make('Environment', config('app.env'))
-                ->description('Current application environment')
-                ->descriptionIcon('heroicon-m-server')
-                ->color('primary'),
-
-            Stat::make('Default Disk', config('filesystems.default'))
-                ->description('Laravel default filesystem disk')
-                ->descriptionIcon('heroicon-m-circle-stack')
-                ->color(config('filesystems.default') === 's3' ? 'success' : 'warning'),
-
-            Stat::make('S3 Region', config('filesystems.disks.s3.region'))
-                ->description('AWS/DO Spaces region')
-                ->descriptionIcon('heroicon-m-globe-americas')
-                ->color('info'),
-
-            Stat::make('S3 Bucket', config('filesystems.disks.s3.bucket'))
-                ->description('Storage bucket name')
-                ->descriptionIcon('heroicon-m-archive-box')
-                ->color('info'),
-
-            Stat::make('S3 Endpoint', $this->maskEndpoint(config('filesystems.disks.s3.endpoint')))
-                ->description('Storage service endpoint')
-                ->descriptionIcon('heroicon-m-link')
-                ->color('info'),
-
-            Stat::make('Access Key', $this->maskSecret(config('filesystems.disks.s3.key')))
-                ->description('S3 access key (masked)')
-                ->descriptionIcon('heroicon-m-key')
-                ->color($this->hasValue(config('filesystems.disks.s3.key')) ? 'success' : 'danger'),
-
-            Stat::make('Secret Key', $this->maskSecret(config('filesystems.disks.s3.secret')))
-                ->description('S3 secret key (masked)')
-                ->descriptionIcon('heroicon-m-lock-closed')
-                ->color($this->hasValue(config('filesystems.disks.s3.secret')) ? 'success' : 'danger'),
-
-            Stat::make('Connection Test', $this->testS3Connection())
-                ->description('S3 connectivity status')
-                ->descriptionIcon('heroicon-m-signal')
-                ->color($this->testS3Connection() === 'Connected' ? 'success' : 'danger'),
-
-            Stat::make('Session Driver', config('session.driver'))
-                ->description('Session storage driver')
-                ->descriptionIcon('heroicon-m-identification')
-                ->color(config('session.driver') === 'database' ? 'success' : 'warning'),
-
-            Stat::make('Cache Store', config('cache.default'))
-                ->description('Cache storage driver')
-                ->descriptionIcon('heroicon-m-bolt')
-                ->color(config('cache.default') === 'database' ? 'success' : 'warning'),
-
-            Stat::make('Session Secure', config('session.secure') ? 'Enabled' : 'Disabled')
-                ->description('Secure cookies for HTTPS')
-                ->descriptionIcon('heroicon-m-shield-check')
-                ->color(config('session.secure') ? 'success' : 'warning'),
-
-            Stat::make('App Key', $this->maskSecret(config('app.key')))
-                ->description('Application encryption key')
-                ->descriptionIcon('heroicon-m-key')
-                ->color($this->hasValue(config('app.key')) ? 'success' : 'danger'),
+            'environment' => config('app.env'),
+            'defaultDisk' => config('filesystems.default'),
+            's3Region' => config('filesystems.disks.s3.region'),
+            's3Bucket' => config('filesystems.disks.s3.bucket'),
+            's3Endpoint' => config('filesystems.disks.s3.endpoint'),
+            's3AccessKey' => $this->maskSecret(config('filesystems.disks.s3.key')),
+            's3SecretKey' => $this->maskSecret(config('filesystems.disks.s3.secret')),
+            's3ConnectionTest' => $this->testS3Connection(),
+            'sessionDriver' => config('session.driver'),
+            'cacheStore' => config('cache.default'),
+            'sessionSecure' => config('session.secure'),
+            'appKey' => $this->maskSecret(config('app.key')),
+            'hasS3AccessKey' => $this->hasValue(config('filesystems.disks.s3.key')),
+            'hasS3SecretKey' => $this->hasValue(config('filesystems.disks.s3.secret')),
+            'hasAppKey' => $this->hasValue(config('app.key')),
+            's3Connected' => $this->testS3Connection() === 'Connected',
         ];
     }
 

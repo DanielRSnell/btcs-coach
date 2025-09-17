@@ -45,7 +45,6 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 S3ConfigWidget::class,
                 Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
