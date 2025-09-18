@@ -89,7 +89,7 @@ export default function PIChartModal({ user: initialUser }: PIChartModalProps) {
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogPortal>
                 <DialogOverlay
-                    className="backdrop-blur-md bg-black/90"
+                    className="backdrop-blur-md bg-black/30"
                     style={{ zIndex: 99999999999999998 }}
                 />
                 <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto" style={{ zIndex: 99999999999999999 }}>

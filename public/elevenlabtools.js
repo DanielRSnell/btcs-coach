@@ -15,6 +15,10 @@ document.addEventListener('elevenlabs-convai:call', (event) => {
         showUsersPIChart: () => {
             window.profile.chart.show();
             return true;
+        },
+        hideUsersPIChart: () => {
+            window.profile.chart.hide();
+            return true;
         }
     };
     

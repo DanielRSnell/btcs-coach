@@ -65,7 +65,7 @@ export default function PIDrawer({ user: initialUser }: PIDrawerProps) {
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetPortal>
                 <SheetOverlay
-                    className="backdrop-blur-md bg-black/90"
+                    className="backdrop-blur-md bg-black/30"
                     style={{ zIndex: 99999999999999998 }}
                 />
                 <SheetContent
