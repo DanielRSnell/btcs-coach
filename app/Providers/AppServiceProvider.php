@@ -19,9 +19,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Force HTTPS in production but not for Livewire upload URLs
+        // Configure proxy trust for Railway
         if (config('app.env') === 'production') {
-            \URL::forceScheme('https');
+            // Trust Railway's proxy headers for proper HTTPS detection
+            request()->setTrustedProxies(['*'], \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR | \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO);
+
+            // Only force HTTPS if actually behind HTTPS proxy
+            if (request()->header('X-Forwarded-Proto') === 'https') {
+                \URL::forceScheme('https');
+            }
 
             // Prevent Livewire from using signed URLs for file uploads
             $this->preventLivewireSignedUploads();
