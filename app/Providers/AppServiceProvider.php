@@ -24,10 +24,8 @@ class AppServiceProvider extends ServiceProvider
             // Trust Railway's proxy headers for proper HTTPS detection
             request()->setTrustedProxies(['*'], \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR | \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO);
 
-            // Only force HTTPS if actually behind HTTPS proxy
-            if (request()->header('X-Forwarded-Proto') === 'https') {
-                \URL::forceScheme('https');
-            }
+            // Don't force HTTPS scheme - let Railway handle it naturally
+            // This prevents URL scheme mismatches in signature validation
 
             // Prevent Livewire from using signed URLs for file uploads
             $this->preventLivewireSignedUploads();

@@ -12,6 +12,22 @@ Route::get('/', function () {
     return redirect()->route('login');
 })->name('home');
 
+// Debug route to check Railway proxy headers (remove after testing)
+Route::get('/debug-headers', function () {
+    if (config('app.env') !== 'production') {
+        abort(404);
+    }
+
+    return response()->json([
+        'headers' => request()->headers->all(),
+        'server' => request()->server->all(),
+        'url' => request()->url(),
+        'scheme' => request()->getScheme(),
+        'is_secure' => request()->isSecure(),
+        'forwarded_proto' => request()->header('X-Forwarded-Proto'),
+    ]);
+});
+
 // Session API routes with JSON error responses (outside auth middleware to use custom middleware)
 Route::prefix('api/sessions')->middleware('api.auth')->group(function () {
     Route::post('register', [SessionsController::class, 'registerSession'])
