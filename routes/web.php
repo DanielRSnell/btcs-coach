@@ -28,6 +28,13 @@ Route::get('/debug-headers', function () {
     ]);
 });
 
+// Override Livewire upload route in production to bypass signature validation
+if (config('app.env') === 'production') {
+    Route::post('/livewire/upload-file', [App\Http\Controllers\CustomFileUploadController::class, 'handle'])
+        ->middleware(['web', 'auth'])
+        ->name('livewire.upload-file');
+}
+
 // Session API routes with JSON error responses (outside auth middleware to use custom middleware)
 Route::prefix('api/sessions')->middleware('api.auth')->group(function () {
     Route::post('register', [SessionsController::class, 'registerSession'])

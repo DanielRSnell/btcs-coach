@@ -84,7 +84,7 @@ class AppServiceProvider extends ServiceProvider
         // The core issue: Remove the signed URL middleware from Livewire uploads
         // This forces Livewire to use the same upload URL pattern as local
         config([
-            'livewire.temporary_file_upload.middleware' => 'web', // Use web middleware instead of signed
+            'livewire.temporary_file_upload.middleware' => 'web,throttle:60,1', // Use web middleware without signed validation
         ]);
     }
 }
