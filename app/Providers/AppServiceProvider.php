@@ -21,11 +21,17 @@ class AppServiceProvider extends ServiceProvider
     {
         // Configure proxy trust for Railway
         if (config('app.env') === 'production') {
-            // Trust Railway's proxy headers for proper HTTPS detection
-            request()->setTrustedProxies(['*'], \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR | \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO);
+            // Set trusted proxies in the service provider boot method
+            // This needs to be done early in the application lifecycle
+            $trustedHeaders = \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR
+                            | \Illuminate\Http\Request::HEADER_X_FORWARDED_HOST
+                            | \Illuminate\Http\Request::HEADER_X_FORWARDED_PORT
+                            | \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO;
 
-            // Don't force HTTPS scheme - let Railway handle it naturally
-            // This prevents URL scheme mismatches in signature validation
+            request()->setTrustedProxies(['*'], $trustedHeaders);
+
+            // Force HTTPS URLs in production (Railway should set X-Forwarded-Proto)
+            \URL::forceScheme('https');
 
             // Prevent Livewire from using signed URLs for file uploads
             $this->preventLivewireSignedUploads();
