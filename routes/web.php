@@ -1,8 +1,6 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ModuleController;
-use App\Http\Controllers\ActionItemController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\SessionsController;
 use Illuminate\Support\Facades\Route;
@@ -102,14 +100,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'sample_files' => $manifestExists && $manifestContent ? array_slice(array_keys($manifestContent), 0, 10) : [],
         ]);
     });
-    Route::get('modules', [ModuleController::class, 'index'])->name('modules.index');
-    Route::get('modules/{module:slug}', [ModuleController::class, 'show'])->name('modules.show');
-    Route::get('modules/{module:slug}/chat', [ModuleController::class, 'chat'])->name('modules.chat');
     Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics');
-    
-    // Action Item routes
-    Route::put('action-items/{actionItem}/complete', [ActionItemController::class, 'markAsCompleted'])->name('action-items.complete');
-    Route::put('action-items/{actionItem}/status', [ActionItemController::class, 'updateStatus'])->name('action-items.status');
 });
 
 require __DIR__.'/settings.php';
