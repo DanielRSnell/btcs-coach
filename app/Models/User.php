@@ -29,7 +29,6 @@ class User extends Authenticatable implements FilamentUser
         'pi_assessed_at',
         'pi_assessor_name',
         'pi_notes',
-        'pi_profile',
         'pi_chart_image',
         'pi_document',
     ];
@@ -56,7 +55,6 @@ class User extends Authenticatable implements FilamentUser
             'password' => 'hashed',
             'pi_raw_scores' => 'array',
             'pi_assessed_at' => 'datetime',
-            'pi_profile' => 'array',
         ];
     }
 
@@ -174,21 +172,6 @@ class User extends Authenticatable implements FilamentUser
         return $this->pi_raw_scores['formality'] ?? null;
     }
 
-    /**
-     * Get user's PI profile data.
-     */
-    public function getPiProfile(): ?array
-    {
-        return $this->pi_profile;
-    }
-
-    /**
-     * Check if user has completed PI profile.
-     */
-    public function hasPiProfile(): bool
-    {
-        return !is_null($this->pi_profile);
-    }
 
     /**
      * Get the full URL for the PI chart image.
@@ -202,13 +185,6 @@ class User extends Authenticatable implements FilamentUser
         return \Storage::disk('s3')->url($this->pi_chart_image);
     }
 
-    /**
-     * Get specific section of PI profile.
-     */
-    public function getPiProfileSection(string $section): ?array
-    {
-        return $this->pi_profile[$section] ?? null;
-    }
 
     /**
      * Relationship: Get all Voiceflow sessions for the user.
