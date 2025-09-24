@@ -18,6 +18,8 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\Support\Facades\FilamentAsset;
+use App\Http\Middleware\FixFilamentUploads;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -52,6 +54,7 @@ class AdminPanelProvider extends PanelProvider
                 StartSession::class,
                 AuthenticateSession::class,
                 ShareErrorsFromSession::class,
+                FixFilamentUploads::class, // Fix upload token/signature issues
                 VerifyCsrfToken::class,
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
@@ -62,6 +65,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authGuard('web')
             ->loginRouteSlug('login')
-            ->profile();
+            ->profile()
+            ->spa(false) // Disable SPA mode to prevent token issues
+            ->maxContentWidth('full');
     }
 }

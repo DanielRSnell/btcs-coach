@@ -23,5 +23,43 @@ class AppServiceProvider extends ServiceProvider
         if (config('app.env') === 'production') {
             \URL::forceScheme('https');
         }
+
+        // Fix Filament file upload session configuration for production
+        $this->configureFilamentUploads();
+    }
+
+    /**
+     * Configure Filament file upload settings for consistent behavior
+     * between local and production environments
+     */
+    private function configureFilamentUploads(): void
+    {
+        // Ensure consistent session configuration for file uploads
+        if (app()->runningInConsole()) {
+            return;
+        }
+
+        // Force consistent CSRF token configuration in production
+        if (config('app.env') === 'production') {
+            // Ensure session driver is properly configured
+            config(['session.same_site' => 'lax']);
+
+            // Set secure cookies for HTTPS in production
+            config(['session.secure' => true]);
+            config(['session.http_only' => true]);
+
+            // Extend session lifetime for file uploads
+            config(['session.lifetime' => 240]); // 4 hours instead of 2
+
+            // Ensure consistent session cookie configuration
+            config(['session.cookie' => 'btcs_coach_session']);
+            config(['session.path' => '/']);
+
+            // Force session encryption to be consistent
+            config(['session.encrypt' => false]);
+
+            // Set consistent temporary file upload configuration
+            config(['livewire.temporary_file_upload.max_upload_time' => 10]);
+        }
     }
 }
