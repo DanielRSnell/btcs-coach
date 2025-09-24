@@ -38,25 +38,6 @@ class PiBehavioralPattern extends Model
         return $this->hasMany(User::class, 'pi_behavioral_pattern_id');
     }
 
-    public function getDominanceScore(): ?int
-    {
-        return $this->behavioral_drives['dominance'] ?? null;
-    }
-
-    public function getExtraversionScore(): ?int
-    {
-        return $this->behavioral_drives['extraversion'] ?? null;
-    }
-
-    public function getPatienceScore(): ?int
-    {
-        return $this->behavioral_drives['patience'] ?? null;
-    }
-
-    public function getFormalityScore(): ?int
-    {
-        return $this->behavioral_drives['formality'] ?? null;
-    }
 
     public function getCompatiblePatternCodes(): array
     {

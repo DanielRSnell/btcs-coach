@@ -48,33 +48,6 @@ class PiBehavioralPatternResource extends Resource
                             ->default(true),
                     ])->columns(2),
                 
-                Forms\Components\Section::make('Behavioral Drives (0-100 scale)')
-                    ->schema([
-                        Forms\Components\TextInput::make('behavioral_drives.dominance')
-                            ->label('Dominance (A)')
-                            ->numeric()
-                            ->required()
-                            ->minValue(0)
-                            ->maxValue(100),
-                        Forms\Components\TextInput::make('behavioral_drives.extraversion')
-                            ->label('Extraversion (B)')
-                            ->numeric()
-                            ->required()
-                            ->minValue(0)
-                            ->maxValue(100),
-                        Forms\Components\TextInput::make('behavioral_drives.patience')
-                            ->label('Patience (C)')
-                            ->numeric()
-                            ->required()
-                            ->minValue(0)
-                            ->maxValue(100),
-                        Forms\Components\TextInput::make('behavioral_drives.formality')
-                            ->label('Formality (D)')
-                            ->numeric()
-                            ->required()
-                            ->minValue(0)
-                            ->maxValue(100),
-                    ])->columns(2),
                 
                 Forms\Components\Section::make('Characteristics')
                     ->schema([
@@ -129,22 +102,6 @@ class PiBehavioralPatternResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->badge(),
-                Tables\Columns\TextColumn::make('behavioral_drives.dominance')
-                    ->label('Dom (A)')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('behavioral_drives.extraversion')
-                    ->label('Ext (B)')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('behavioral_drives.patience')
-                    ->label('Pat (C)')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('behavioral_drives.formality')
-                    ->label('For (D)')
-                    ->numeric()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('users_count')
                     ->label('Users')
                     ->sortable(),
