@@ -19,9 +19,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Force HTTPS in production
+        // Force HTTPS in production but not for Livewire upload URLs
         if (config('app.env') === 'production') {
             \URL::forceScheme('https');
+
+            // Prevent Livewire from using signed URLs for file uploads
+            $this->preventLivewireSignedUploads();
         }
 
         // Fix Filament file upload session configuration for production
@@ -61,5 +64,17 @@ class AppServiceProvider extends ServiceProvider
             // Set consistent temporary file upload configuration
             config(['livewire.temporary_file_upload.max_upload_time' => 10]);
         }
+    }
+
+    /**
+     * Prevent Livewire from using signed URLs for file uploads in production
+     */
+    private function preventLivewireSignedUploads(): void
+    {
+        // The core issue: Remove the signed URL middleware from Livewire uploads
+        // This forces Livewire to use the same upload URL pattern as local
+        config([
+            'livewire.temporary_file_upload.middleware' => 'web', // Use web middleware instead of signed
+        ]);
     }
 }

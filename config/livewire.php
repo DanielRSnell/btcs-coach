@@ -67,7 +67,7 @@ return [
         'disk' => 'local',     // Use local disk for temporary uploads, then move to S3
         'rules' => ['required', 'file', 'max:20480'], // 20MB max for PI documents  
         'directory' => 'livewire-tmp',
-        'middleware' => 'throttle:60,1',
+        'middleware' => 'web,throttle:60,1',
         'preview_mimes' => [   // Supported file types for temporary pre-signed file URLs...
             'png', 'gif', 'bmp', 'svg', 'wav', 'mp4',
             'mov', 'avi', 'wmv', 'mp3', 'm4a',
