@@ -73,7 +73,7 @@ class VoiceflowSessionsWidget extends BaseWidget
 
     public function getDisplayName(): string
     {
-        return 'Voiceflow Sessions Overview';
+        return 'Sessions Overview';
     }
 
     public static function canView(): bool

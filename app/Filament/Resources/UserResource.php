@@ -96,7 +96,7 @@ class UserResource extends Resource
                     ->collapsible(),
                 
                 
-                Forms\Components\Section::make('Voiceflow Sessions')
+                Forms\Components\Section::make('Sessions')
                     ->schema([
                         Forms\Components\Placeholder::make('sessions_summary')
                             ->label('Sessions Summary')
@@ -257,7 +257,7 @@ class UserResource extends Resource
                     ->sortable()
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('voiceflow_sessions_count')
-                    ->label('Voiceflow Sessions')
+                    ->label('Sessions')
                     ->getStateUsing(function ($record) {
                         $totalSessions = $record->voiceflowSessions()->count();
                         if ($totalSessions === 0) {
@@ -279,7 +279,7 @@ class UserResource extends Resource
                     ->tooltip(function ($record) {
                         $sessions = $record->voiceflowSessions()->recent()->get();
                         if ($sessions->isEmpty()) {
-                            return 'No Voiceflow sessions';
+                            return 'No sessions';
                         }
                         
                         $sessionInfo = $sessions->map(function ($session) {
@@ -336,10 +336,10 @@ class UserResource extends Resource
                     ->label('No PI Document'),
                 Tables\Filters\Filter::make('has_voiceflow_sessions')
                     ->query(fn (Builder $query): Builder => $query->whereHas('voiceflowSessions'))
-                    ->label('Has Voiceflow Sessions'),
+                    ->label('Has Sessions'),
                 Tables\Filters\Filter::make('no_voiceflow_sessions')
                     ->query(fn (Builder $query): Builder => $query->whereDoesntHave('voiceflowSessions'))
-                    ->label('No Voiceflow Sessions'),
+                    ->label('No Sessions'),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

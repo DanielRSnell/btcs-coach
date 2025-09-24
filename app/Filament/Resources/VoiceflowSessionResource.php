@@ -21,7 +21,7 @@ class VoiceflowSessionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
     
-    protected static ?string $navigationLabel = 'Voiceflow Sessions';
+    protected static ?string $navigationLabel = 'Sessions';
     
     protected static ?string $modelLabel = 'Session';
     
