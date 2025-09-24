@@ -293,6 +293,39 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
 
     // Initialize ChatInfo and mode-specific components
     useEffect(() => {
+        // Check localStorage for keys containing "cmeu" to extract chat history
+        let voicechat_history = [];
+        try {
+            const localStorageKeys = Object.keys(localStorage);
+            const cmeuKeys = localStorageKeys.filter(key => key.includes('cmeu'));
+
+            console.log('🔍 Checking for localStorage keys containing "cmeu":', cmeuKeys);
+
+            if (cmeuKeys.length > 0) {
+                // Use the first cmeu key found
+                const cmeuKey = cmeuKeys[0];
+                const cmeuData = localStorage.getItem(cmeuKey);
+
+                if (cmeuData) {
+                    console.log(`📦 Found cmeu data in key "${cmeuKey}"`);
+                    const parsedData = JSON.parse(cmeuData);
+
+                    if (parsedData.turns && Array.isArray(parsedData.turns)) {
+                        voicechat_history = parsedData.turns;
+                        console.log(`✅ Extracted ${voicechat_history.length} turns from cmeu localStorage:`, voicechat_history);
+                    } else {
+                        console.log('⚠️ No turns array found in cmeu data');
+                    }
+                } else {
+                    console.log(`⚠️ No data found for cmeu key "${cmeuKey}"`);
+                }
+            } else {
+                console.log('📭 No localStorage keys containing "cmeu" found');
+            }
+        } catch (error) {
+            console.error('❌ Error extracting voicechat_history from localStorage:', error);
+        }
+
         // ALWAYS create window.ChatInfo regardless of mode
         const payload = {
             id: user?.id || 0,
@@ -306,7 +339,8 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
             pi_notes: user?.pi_notes || null,
             pi_profile: user?.pi_profile || null,
             has_pi_assessment: user?.has_pi_assessment || false,
-            has_pi_profile: user?.has_pi_profile || false
+            has_pi_profile: user?.has_pi_profile || false,
+            voicechat_history: voicechat_history
         };
 
         const chatName = currentSession?.name || pendingSessionName || '';
