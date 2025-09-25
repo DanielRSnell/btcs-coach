@@ -5,7 +5,7 @@
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
-@custom-variant dark (&:is(.dark *));
+/* @custom-variant dark (&:is(.dark *)); */
 
 @theme {
     --font-sans:
@@ -95,40 +95,7 @@
     --sidebar-ring: oklch(0.318 0.067 249.12);
 }
 
-.dark {
-    --background: oklch(0.15 0.015 249.12); /* Dark with blue tint */
-    --foreground: oklch(0.95 0.005 85);
-    --card: oklch(0.18 0.02 249.12);
-    --card-foreground: oklch(0.95 0.005 85);
-    --popover: oklch(0.18 0.02 249.12);
-    --popover-foreground: oklch(0.95 0.005 85);
-    --primary: oklch(0.55 0.08 249.12); /* Lighter H.G. Fenton blue for dark mode */
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.25 0.02 85); /* Dark orange/gold tint */
-    --secondary-foreground: oklch(0.95 0.005 85);
-    --muted: oklch(0.25 0.02 85);
-    --muted-foreground: oklch(0.7 0.02 85);
-    --accent: oklch(0.65 0.12 85.87); /* Softer orange/gold for dark mode */
-    --accent-foreground: oklch(0.15 0.015 249.12);
-    --destructive: oklch(0.396 0.141 25.723);
-    --destructive-foreground: oklch(0.637 0.237 25.331);
-    --border: oklch(0.25 0.02 85);
-    --input: oklch(0.22 0.02 85);
-    --ring: oklch(0.55 0.08 249.12); /* H.G. Fenton blue for focus rings */
-    --chart-1: oklch(0.55 0.08 249.12); /* H.G. Fenton blue */
-    --chart-2: oklch(0.65 0.12 85.87); /* H.G. Fenton orange */
-    --chart-3: oklch(0.7 0.06 249.12); /* Lighter blue variant */
-    --chart-4: oklch(0.5 0.1 85.87); /* Darker orange variant */
-    --chart-5: oklch(0.4 0.1 249.12); /* Darker blue variant */
-    --sidebar: oklch(0.18 0.02 249.12);
-    --sidebar-foreground: oklch(0.95 0.005 85);
-    --sidebar-primary: oklch(0.55 0.08 249.12);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.22 0.025 85);
-    --sidebar-accent-foreground: oklch(0.95 0.005 85);
-    --sidebar-border: oklch(0.25 0.02 85);
-    --sidebar-ring: oklch(0.55 0.08 249.12);
-}
+
 
 @view-transition {
     navigation: auto;
