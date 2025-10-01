@@ -62,6 +62,40 @@ class UserResource extends Resource
                             ->dehydrated(false),
                     ])->columns(2)
                     ->collapsible(),
+
+                Forms\Components\Section::make('Employment Information')
+                    ->schema([
+                        Forms\Components\TextInput::make('employee_number')
+                            ->label('Employee Number')
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('org_level_2')
+                            ->label('Org Level 2')
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('job')
+                            ->label('Job Title')
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('job_code')
+                            ->label('Job Code')
+                            ->maxLength(255),
+                        Forms\Components\Select::make('employment_status')
+                            ->label('Employment Status')
+                            ->options([
+                                'Active' => 'Active',
+                                'Leave of absence' => 'Leave of absence',
+                                'Inactive' => 'Inactive',
+                            ])
+                            ->placeholder('Select status'),
+
+                        Forms\Components\View::make('filament.forms.components.team-members-preview')
+                            ->label('Team Members')
+                            ->viewData(fn ($record) => [
+                                'userId' => $record?->id,
+                                'orgLevel2' => $record?->org_level_2,
+                            ])
+                            ->columnSpanFull()
+                            ->visible(fn ($record) => $record && !empty($record->org_level_2)),
+                    ])->columns(2)
+                    ->collapsible(),
                 
                 Forms\Components\Section::make('PI Assessment')
                     ->schema([
@@ -222,6 +256,39 @@ class UserResource extends Resource
                         'member' => 'info',
                     })
                     ->sortable(),
+                Tables\Columns\TextColumn::make('employee_number')
+                    ->label('Emp #')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('org_level_2')
+                    ->label('Org Level 2')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable()
+                    ->wrap(),
+                Tables\Columns\TextColumn::make('job')
+                    ->label('Job Title')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable()
+                    ->wrap(),
+                Tables\Columns\TextColumn::make('job_code')
+                    ->label('Job Code')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('employment_status')
+                    ->label('Status')
+                    ->badge()
+                    ->color(fn (string $state = null): string => match ($state) {
+                        'Active' => 'success',
+                        'Leave of absence' => 'warning',
+                        'Inactive' => 'danger',
+                        default => 'gray',
+                    })
+                    ->sortable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('piBehavioralPattern.name')
                     ->label('PI Pattern')
                     ->badge()
@@ -312,6 +379,16 @@ class UserResource extends Resource
                         'admin' => 'Administrator',
                         'member' => 'Member',
                     ]),
+                Tables\Filters\SelectFilter::make('employment_status')
+                    ->label('Employment Status')
+                    ->options([
+                        'Active' => 'Active',
+                        'Leave of absence' => 'Leave of absence',
+                        'Inactive' => 'Inactive',
+                    ]),
+                Tables\Filters\Filter::make('has_employment_info')
+                    ->query(fn (Builder $query): Builder => $query->whereNotNull('employee_number'))
+                    ->label('Has Employment Info'),
                 Tables\Filters\SelectFilter::make('pi_behavioral_pattern_id')
                     ->label('PI Pattern')
                     ->relationship('piBehavioralPattern', 'name')

@@ -45,6 +45,14 @@ Route::prefix('api/sessions')->middleware('api.auth')->group(function () {
         ->name('api.sessions.feedback');
 });
 
+// Team API routes
+Route::prefix('api/team')->middleware('api.auth')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Api\TeamController::class, 'index'])
+        ->name('api.team.index');
+    Route::post('by-org-level', [\App\Http\Controllers\Api\TeamController::class, 'byOrgLevel'])
+        ->name('api.team.by-org-level');
+});
+
 Route::middleware(['auth', 'verified'])->group(function () {
     // Redirect dashboard to sessions
     Route::get('dashboard', function () {

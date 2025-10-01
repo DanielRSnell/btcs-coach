@@ -24,6 +24,11 @@ class User extends Authenticatable implements FilamentUser
         'email',
         'password',
         'role',
+        'employee_number',
+        'org_level_2',
+        'job',
+        'job_code',
+        'employment_status',
         'pi_behavioral_pattern_id',
         'pi_raw_scores',
         'pi_assessed_at',
@@ -356,7 +361,7 @@ class User extends Authenticatable implements FilamentUser
     {
         // Use the database relationship with proper ordering
         $sessionModel = $this->voiceflowSessions()->recent()->first();
-        
+
         if ($sessionModel) {
             return [
                 'session_id' => $sessionModel->session_id,
@@ -367,7 +372,153 @@ class User extends Authenticatable implements FilamentUser
                 'updated_at' => $sessionModel->session_updated_at?->toISOString(),
             ];
         }
-        
+
         return null;
+    }
+
+    /**
+     * Get team members from database by Org Level 2.
+     * Returns all team members that share the same Org Level 2 as the current user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function teamMembersByOrgLevel()
+    {
+        return $this->hasMany(\App\Models\TeamMember::class, 'org_level_2', 'org_level_2');
+    }
+
+    /**
+     * Get team members from team.json by Org Level 2.
+     * Returns all team members that share the same Org Level 2 as the current user.
+     *
+     * @param string|null $orgLevel2 Optional Org Level 2 to search for. If null, uses the user's own Org Level 2.
+     * @return array Array of team member data from team.json
+     */
+    public static function getTeamMembers(?string $orgLevel2 = null): array
+    {
+        // If no orgLevel2 provided and we're called on an instance, use the user's org level
+        if (is_null($orgLevel2) && isset($this)) {
+            $orgLevel2 = $this->org_level_2;
+        }
+
+        // If still no orgLevel2, return empty array
+        if (empty($orgLevel2)) {
+            return [];
+        }
+
+        // Load team.json if it exists
+        $teamJsonPath = public_path('team.json');
+
+        if (!\File::exists($teamJsonPath)) {
+            // If team.json doesn't exist, use database instead
+            return \App\Models\TeamMember::where('org_level_2', $orgLevel2)
+                ->get()
+                ->toArray();
+        }
+
+        $teamData = json_decode(\File::get($teamJsonPath), true);
+
+        if (!$teamData) {
+            \Log::warning('Failed to parse team.json');
+            return [];
+        }
+
+        // Filter team members by Org Level 2
+        $teamMembers = array_filter($teamData, function ($member) use ($orgLevel2) {
+            return isset($member['Org Level 2']) &&
+                   trim($member['Org Level 2']) === trim($orgLevel2);
+        });
+
+        // Re-index array to start from 0
+        return array_values($teamMembers);
+    }
+
+    /**
+     * Get the user's team members based on their Org Level 2 from database.
+     *
+     * @return array Array of team member data
+     */
+    public function getMyTeamMembers(): array
+    {
+        if (empty($this->org_level_2)) {
+            return [];
+        }
+
+        return \App\Models\TeamMember::where('org_level_2', $this->org_level_2)
+            ->get()
+            ->toArray();
+    }
+
+    /**
+     * Get team members with account status information.
+     * Checks if each team member has an existing user account.
+     *
+     * @param string|null $orgLevel2 Optional Org Level 2 to search for
+     * @return array Array of team members with 'has_account' and 'user_id' fields
+     */
+    public static function getTeamMembersWithAccountStatus(?string $orgLevel2 = null): array
+    {
+        if (empty($orgLevel2)) {
+            return [];
+        }
+
+        // Get team members from database
+        $teamMembers = \App\Models\TeamMember::where('org_level_2', $orgLevel2)->get();
+
+        return $teamMembers->map(function ($member) {
+            return [
+                'employee_number' => $member->employee_number,
+                'employee_name' => $member->employee_name,
+                'first_name' => $member->first_name,
+                'last_name' => $member->last_name,
+                'employee_email' => $member->employee_email,
+                'job' => $member->job,
+                'job_code' => $member->job_code,
+                'org_level_2' => $member->org_level_2,
+                'employment_status' => $member->employment_status,
+                'has_account' => $member->hasAccount(),
+                'user_id' => $member->user_id,
+            ];
+        })->toArray();
+    }
+
+    /**
+     * Get the user's team members with account status.
+     *
+     * @return array Array of team member data with account status
+     */
+    public function getMyTeamMembersWithAccountStatus(): array
+    {
+        return self::getTeamMembersWithAccountStatus($this->org_level_2);
+    }
+
+    /**
+     * Create a user account from team.json data.
+     *
+     * @param array $teamMemberData Team member data from team.json
+     * @param string $defaultPassword Default password for new accounts
+     * @return User
+     */
+    public static function createFromTeamData(array $teamMemberData, string $defaultPassword = 'Welcome2024!'): User
+    {
+        $email = $teamMemberData['Employee Email'];
+        // Parse name from "Last Suffix, First MI" format
+        $fullName = $teamMemberData['Employee Name (Last Suffix, First MI)'] ?? '';
+        $nameParts = explode(',', $fullName);
+        $name = count($nameParts) > 1
+            ? trim($nameParts[1]) . ' ' . trim($nameParts[0])  // First Last
+            : trim($fullName);
+
+        return User::create([
+            'name' => $name,
+            'email' => $email,
+            'password' => bcrypt($defaultPassword),
+            'role' => 'member',
+            'employee_number' => (string) $teamMemberData['Employee Number'],
+            'org_level_2' => $teamMemberData['Org Level 2'],
+            'job' => $teamMemberData['Job'],
+            'job_code' => $teamMemberData['Job Code'],
+            'employment_status' => $teamMemberData['Employment Status'],
+        ]);
     }
 }
