@@ -946,7 +946,9 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
 
     return (
         <AppLayout>
-            <Head title="Sessions" />
+            <Head title="Sessions">
+                <script src="/localStorage.js" defer></script>
+            </Head>
             
             <div className="flex h-[calc(100vh-8rem)] gap-6 pt-6">
                 {/* Sessions Sidebar */}
