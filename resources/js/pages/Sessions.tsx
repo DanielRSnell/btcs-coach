@@ -5,8 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
-import { MessageCircle, Calendar, Clock, ThumbsUp, ThumbsDown, Mic } from 'lucide-react';
+import { MessageCircle, Calendar, Clock, ThumbsUp, ThumbsDown, Mic, Menu } from 'lucide-react';
 
 // Extend window interface for Voiceflow and custom functions
 declare global {
@@ -92,7 +93,10 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
     const [currentActiveSessionId, setCurrentActiveSessionId] = useState<string | null>(null);
     const [voiceflowInitialized, setVoiceflowInitialized] = useState(false);
     const [pendingSessionName, setPendingSessionName] = useState<string | null>(newSessionName || null);
-    
+
+    // Mobile sheet state
+    const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+
     // Feedback modal state
     const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
     const [feedbackRating, setFeedbackRating] = useState<'positive' | 'negative' | null>(null);
@@ -840,6 +844,9 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
         console.log(`📊 Session data:`, session);
 
         try {
+            // Close mobile sheet if open
+            setMobileSheetOpen(false);
+
             // Step 1: Clear all existing voiceflow localStorage entries
             console.log(`🧹 CLEARING: Removing all voiceflow-session-* from localStorage`);
             const voiceflowKeys = Object.keys(localStorage).filter(key => key.startsWith('voiceflow-session-'));
@@ -852,22 +859,22 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
             const projectId = session.project_id || '686331bc96acfa1dd62f6fd5'; // Default project ID or from session
             const localStorageKey = `voiceflow-session-${projectId}`;
             const sessionData = session.value || {};
-            
+
             console.log(`📝 CREATING: New localStorage entry ${localStorageKey}`);
             console.log(`📦 Session value data:`, sessionData);
-            
+
             localStorage.setItem(localStorageKey, JSON.stringify(sessionData));
-            
+
             // Step 3: Update the selected session state
             setSelectedSessionId(sessionId);
-            
+
             // Step 4: Navigate to session-specific URL with full page reload
             const sessionUrl = `/sessions/${sessionId}`;
             console.log(`🧭 NAVIGATING: To ${sessionUrl} (full page reload)`);
-            
+
             // Use browser navigation for full page reload instead of Inertia
             window.location.href = sessionUrl;
-            
+
         } catch (error) {
             console.error('❌ Error switching sessions:', error);
         }
@@ -944,15 +951,83 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
 
 
 
+    // Sessions list component (reused in both desktop and mobile)
+    const SessionsList = () => (
+        <>
+            <div className="flex-1 overflow-y-auto no-scrollbar">
+                {Object.keys(sessions).length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center p-4 md:p-6 text-center">
+                        <div className="flex flex-col items-center space-y-3 md:space-y-4">
+                            <div className="p-4 md:p-6 bg-gray-50 rounded-full">
+                                <MessageCircle className="h-8 md:h-10 w-8 md:w-10 text-gray-300" />
+                            </div>
+                            <div className="space-y-2">
+                                <h3 className="text-base md:text-lg font-semibold text-gray-700">No active sessions yet</h3>
+                                <p className="text-xs md:text-sm text-gray-500 max-w-sm">
+                                    Start a conversation in the chat area to begin your coaching journey and create your first session.
+                                </p>
+                            </div>
+                            <div className="flex items-center space-x-2 text-xs text-gray-400 mt-4 md:mt-6">
+                                <div className="flex items-center space-x-1">
+                                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                    <span>Ready to chat</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="p-2 md:p-4 space-y-2 md:space-y-3">
+                        {Object.entries(sessions).map(([sessionId, session]) => (
+                            <div
+                                key={sessionId}
+                                className={`p-2 md:p-3 rounded-lg border cursor-pointer transition-colors ${
+                                    currentActiveSessionId === sessionId
+                                        ? 'bg-green-50 border-green-300 shadow-sm ring-2 ring-green-200'
+                                        : selectedSessionId === sessionId
+                                        ? 'bg-blue-50 border-blue-200'
+                                        : 'bg-white hover:bg-gray-50'
+                                }`}
+                                onClick={() => handleSessionSwitch(sessionId, session)}
+                            >
+                                <div className="flex items-start justify-between mb-1 md:mb-2">
+                                    <div className="font-medium text-xs md:text-sm truncate flex-1">
+                                        {session.name || `Session ${sessionId.substring(sessionId.length - 8)}`}
+                                        {currentActiveSessionId === sessionId && (
+                                            <span className="ml-2 text-[10px] md:text-xs bg-green-500 text-white px-1.5 md:px-2 py-0.5 rounded-full">
+                                                Current
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs text-gray-500">
+                                    <Calendar className="h-2.5 md:h-3 w-2.5 md:w-3" />
+                                    <span>{formatSessionDate(session.created_at)}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs text-gray-500 mt-0.5 md:mt-1">
+                                    <Clock className="h-2.5 md:h-3 w-2.5 md:w-3" />
+                                    <span>Updated {formatSessionDate(session.updated_at)}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs text-gray-400 mt-0.5 md:mt-1">
+                                    <MessageCircle className="h-2.5 md:h-3 w-2.5 md:w-3" />
+                                    <span>{session.value?.turns?.length || 0} messages</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </>
+    );
+
     return (
         <AppLayout>
             <Head title="Sessions">
                 <script src="/localStorage.js" defer></script>
             </Head>
-            
-            <div className="flex h-[calc(100vh-8rem)] gap-6 pt-6">
-                {/* Sessions Sidebar */}
-                <div className="w-80 flex-shrink-0">
+
+            <div className="flex flex-col md:flex-row h-[calc(100vh-4rem)] md:h-[calc(100vh-8rem)] gap-3 md:gap-6 pt-3 md:pt-6">
+                {/* Desktop Sessions Sidebar */}
+                <div className="hidden md:flex w-80 flex-shrink-0">
                     <Card className="h-full flex flex-col gap-1 py-0 pt-6">
                         <CardHeader className="flex-shrink-0">
                             <CardTitle className="flex items-center gap-2">
@@ -964,71 +1039,38 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="p-0 flex-1 flex flex-col min-h-0">
-                            <div className="flex-1 overflow-y-auto no-scrollbar">
-                                {Object.keys(sessions).length === 0 ? (
-                                    <div className="h-full flex flex-col items-center justify-center p-6 text-center">
-                                        <div className="flex flex-col items-center space-y-4">
-                                            <div className="p-6 bg-gray-50 rounded-full">
-                                                <MessageCircle className="h-10 w-10 text-gray-300" />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <h3 className="text-lg font-semibold text-gray-700">No active sessions yet</h3>
-                                                <p className="text-sm text-gray-500 max-w-sm">
-                                                    Start a conversation in the chat area to begin your coaching journey and create your first session.
-                                                </p>
-                                            </div>
-                                            <div className="flex items-center space-x-2 text-xs text-gray-400 mt-6">
-                                                <div className="flex items-center space-x-1">
-                                                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                                                    <span>Ready to chat</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="p-4 space-y-3">
-                                        {Object.entries(sessions).map(([sessionId, session]) => (
-                                            <div
-                                                key={sessionId}
-                                                className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                                                    currentActiveSessionId === sessionId
-                                                        ? 'bg-green-50 border-green-300 shadow-sm ring-2 ring-green-200'
-                                                        : selectedSessionId === sessionId
-                                                        ? 'bg-blue-50 border-blue-200'
-                                                        : 'bg-white hover:bg-gray-50'
-                                                }`}
-                                                onClick={() => handleSessionSwitch(sessionId, session)}
-                                            >
-                                                <div className="flex items-start justify-between mb-2">
-                                                    <div className="font-medium text-sm truncate flex-1">
-                                                        {session.name || `Session ${sessionId.substring(sessionId.length - 8)}`}
-                                                        {currentActiveSessionId === sessionId && (
-                                                            <span className="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
-                                                                Current
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2 text-xs text-gray-500">
-                                                    <Calendar className="h-3 w-3" />
-                                                    <span>{formatSessionDate(session.created_at)}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                                                    <Clock className="h-3 w-3" />
-                                                    <span>Updated {formatSessionDate(session.updated_at)}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
-                                                    <MessageCircle className="h-3 w-3" />
-                                                    <span>{session.value?.turns?.length || 0} messages</span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                            <SessionsList />
                         </CardContent>
                     </Card>
                 </div>
+
+                {/* Mobile Sessions Sheet */}
+                <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
+                    <SheetTrigger asChild>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="md:hidden fixed z-50 h-11 w-11 bg-white"
+                            style={{ top: '8px', left: '10%' }}
+                        >
+                            <Menu className="h-5 w-5" />
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="w-80 p-0">
+                        <SheetHeader className="p-6 pb-4">
+                            <SheetTitle className="flex items-center gap-2">
+                                <MessageCircle className="h-5 w-5" />
+                                Your Sessions
+                            </SheetTitle>
+                            <SheetDescription>
+                                {Object.keys(sessions).length} active session{Object.keys(sessions).length !== 1 ? 's' : ''}
+                            </SheetDescription>
+                        </SheetHeader>
+                        <div className="flex-1 overflow-y-auto">
+                            <SessionsList />
+                        </div>
+                    </SheetContent>
+                </Sheet>
 
                 {/* Main Chat Area */}
                 <div className="flex-1">
@@ -1038,13 +1080,13 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
                                 // ElevenLabs ConvAI component for audio mode
                                 <div className="h-full w-full rounded-lg overflow-hidden flex flex-col relative">
                                     {/* Audio Chat Header */}
-                                    <div className="flex items-center p-4 bg-white">
+                                    <div className="flex items-center p-3 md:p-4 bg-white">
                                         {/* Left Side - Chat Icon */}
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-2 md:gap-3">
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600"
+                                                className="h-9 w-9 md:h-8 md:w-8 p-0 hover:bg-blue-50 hover:text-blue-600 touch-manipulation"
                                                 onClick={() => {
                                                     console.log('💬 Switch to text chat');
                                                     const currentUrl = new URL(window.location.href);
@@ -1052,35 +1094,35 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
                                                     window.location.href = currentUrl.toString();
                                                 }}
                                             >
-                                                <MessageCircle className="h-4 w-4" />
+                                                <MessageCircle className="h-4 w-4 md:h-4 md:w-4" />
                                             </Button>
-                                            
+
                                             {/* Separator */}
-                                            <div className="w-px h-5 bg-gray-300"></div>
-                                            
+                                            <div className="w-px h-4 md:h-5 bg-gray-300"></div>
+
                                             {/* Chat Name */}
-                                            <h2 className="text-lg font-semibold text-gray-900">
+                                            <h2 className="text-sm md:text-lg font-semibold text-gray-900 truncate max-w-[140px] sm:max-w-[200px] md:max-w-none">
                                                 {currentSession?.name || pendingSessionName || 'Audio Session'}
                                             </h2>
                                         </div>
-                                        
+
                                         {/* Right Side - Feedback Buttons */}
-                                        <div className="flex items-center gap-2 ml-auto">
+                                        <div className="flex items-center gap-1.5 md:gap-2 ml-auto">
                                             {/* Thumbs Up Button */}
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-600"
+                                                className="h-9 w-9 md:h-8 md:w-8 p-0 hover:bg-green-50 hover:text-green-600 touch-manipulation"
                                                 onClick={handleThumbsUp}
                                             >
                                                 <ThumbsUp className="h-4 w-4" />
                                             </Button>
-                                            
+
                                             {/* Thumbs Down Button */}
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                                                className="h-9 w-9 md:h-8 md:w-8 p-0 hover:bg-red-50 hover:text-red-600 touch-manipulation"
                                                 onClick={handleThumbsDown}
                                             >
                                                 <ThumbsDown className="h-4 w-4" />
@@ -1114,13 +1156,13 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
                                 // Standard Voiceflow chat for text mode
                                 <div className="h-full w-full rounded-lg overflow-hidden flex flex-col relative">
                                     {/* Text Chat Header */}
-                                    <div className="flex items-center p-4 bg-white">
+                                    <div className="flex items-center p-3 md:p-4 bg-white">
                                         {/* Left Side - Microphone Icon */}
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-2 md:gap-3">
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600"
+                                                className="h-9 w-9 md:h-8 md:w-8 p-0 hover:bg-blue-50 hover:text-blue-600 touch-manipulation"
                                                 onClick={() => {
                                                     console.log('🎙️ Switch to audio mode');
                                                     const currentUrl = new URL(window.location.href);
@@ -1130,33 +1172,33 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
                                             >
                                                 <Mic className="h-4 w-4" />
                                             </Button>
-                                            
+
                                             {/* Separator */}
-                                            <div className="w-px h-5 bg-gray-300"></div>
-                                            
+                                            <div className="w-px h-4 md:h-5 bg-gray-300"></div>
+
                                             {/* Chat Name */}
-                                            <h2 className="text-lg font-semibold text-gray-900">
+                                            <h2 className="text-sm md:text-lg font-semibold text-gray-900 truncate max-w-[140px] sm:max-w-[200px] md:max-w-none">
                                                 {currentSession?.name || pendingSessionName || 'Text Chat'}
                                             </h2>
                                         </div>
-                                        
+
                                         {/* Right Side - Feedback Buttons */}
-                                        <div className="flex items-center gap-2 ml-auto">
+                                        <div className="flex items-center gap-1.5 md:gap-2 ml-auto">
                                             {/* Thumbs Up Button */}
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-600"
+                                                className="h-9 w-9 md:h-8 md:w-8 p-0 hover:bg-green-50 hover:text-green-600 touch-manipulation"
                                                 onClick={handleThumbsUp}
                                             >
                                                 <ThumbsUp className="h-4 w-4" />
                                             </Button>
-                                            
+
                                             {/* Thumbs Down Button */}
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                                                className="h-9 w-9 md:h-8 md:w-8 p-0 hover:bg-red-50 hover:text-red-600 touch-manipulation"
                                                 onClick={handleThumbsDown}
                                             >
                                                 <ThumbsDown className="h-4 w-4" />
@@ -1188,35 +1230,35 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
 
             {/* Feedback Modal */}
             <Dialog open={feedbackModalOpen} onOpenChange={setFeedbackModalOpen}>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="max-w-[95vw] sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>
+                        <DialogTitle className="text-base md:text-lg">
                             {feedbackRating === 'positive' ? '👍 Share your positive feedback' : '👎 Help us improve'}
                         </DialogTitle>
-                        <DialogDescription>
-                            {feedbackRating === 'positive' 
+                        <DialogDescription className="text-xs md:text-sm">
+                            {feedbackRating === 'positive'
                                 ? 'We\'d love to hear what you enjoyed about this session!'
                                 : 'Let us know what went wrong so we can improve your experience.'
                             }
                         </DialogDescription>
                     </DialogHeader>
-                    
-                    <div className="space-y-4">
+
+                    <div className="space-y-3 md:space-y-4">
                         <div>
-                            <label htmlFor="feedback-comment" className="text-sm font-medium">
+                            <label htmlFor="feedback-comment" className="text-xs md:text-sm font-medium">
                                 {feedbackRating === 'positive' ? 'What did you like?' : 'What can we improve?'}
                                 {' '}(optional)
                             </label>
                             <Textarea
                                 id="feedback-comment"
-                                placeholder={feedbackRating === 'positive' 
+                                placeholder={feedbackRating === 'positive'
                                     ? 'Tell us what worked well...'
                                     : 'Tell us what didn\'t work or what you expected...'
                                 }
                                 value={feedbackComment}
                                 onChange={(e) => setFeedbackComment(e.target.value)}
-                                className="mt-2"
-                                rows={4}
+                                className="mt-2 text-sm"
+                                rows={3}
                             />
                         </div>
                     </div>

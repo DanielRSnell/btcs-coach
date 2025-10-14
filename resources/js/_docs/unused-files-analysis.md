@@ -1,11 +1,13 @@
 # Unused TSX Files Analysis
 
-**Date:** 2025-10-08
+**Date:** 2025-10-08 (Updated)
 **Purpose:** Document TSX files that are no longer used in the primary application after functionality has been reduced to focus on the Sessions-based chat system.
+
+**Status:** ✅ Cleanup completed - unused files moved to `_archive/`
 
 ## Executive Summary
 
-The BTCS Coach application has been streamlined to focus on a multi-session chat interface powered by Voiceflow and ElevenLabs. Many UI components, pages, and layouts from the original scaffolding are no longer in active use.
+The BTCS Coach application has been streamlined to focus on a multi-session chat interface powered by Voiceflow and ElevenLabs. Unused UI components and pages from the original scaffolding have been archived.
 
 ## Current Active Routes & Pages
 
@@ -76,50 +78,38 @@ The BTCS Coach application has been streamlined to focus on a multi-session chat
 - ✅ **components/PIChartModal.tsx** - PI assessment chart modal
 - ✅ **components/PIChatDrawer.tsx** - PI chat drawer component
 
+### Active Components (Verified in Forms/Settings)
+- ✅ **components/input-error.tsx** - Used in auth and settings forms
+- ✅ **components/delete-user.tsx** - Used in profile settings
+- ✅ **components/appearance-tabs.tsx** - Used in settings/appearance.tsx
+
 ### Active Hooks
 - ✅ **hooks/use-mobile.tsx** - Mobile detection hook
 - ✅ **hooks/use-initials.tsx** - User initials generator
 - ✅ **hooks/use-appearance.tsx** - Theme/appearance management
 
-## UNUSED Files (No Longer in Primary Application)
+## ARCHIVED Files (Moved to `_archive/`)
 
-### Unused Pages
-- ❌ **pages/welcome.tsx** - Original welcome/landing page (replaced by Sessions.tsx)
-- ❌ **pages/Dashboard.tsx** - Original dashboard (replaced by Sessions.tsx)
-- ❌ **pages/modules.tsx** - Training modules page (feature removed)
-- ❌ **pages/module-detail.tsx** - Module detail view (feature removed)
-- ❌ **pages/module-chat.tsx** - Module-based chat (replaced by unified Sessions chat)
+### Archived Pages → `_archive/pages/`
+- ❌ **welcome.tsx** - Original welcome/landing page (replaced by Sessions.tsx)
+- ❌ **Dashboard.tsx** - Original dashboard (replaced by Sessions.tsx)
+- ❌ **modules.tsx** - Training modules page (feature removed)
+- ❌ **module-detail.tsx** - Module detail view (feature removed)
+- ❌ **module-chat.tsx** - Module-based chat (replaced by unified Sessions chat)
 
-### Unused Components (From Original Scaffolding)
-- ❌ **components/user-info.tsx** - User info display component (unused)
-- ❌ **components/text-link.tsx** - Text link component (unused)
-- ❌ **components/nav-user.tsx** - Navigation user component (replaced by sidebar)
-- ❌ **components/nav-main.tsx** - Main navigation component (replaced by sidebar)
-- ❌ **components/nav-footer.tsx** - Navigation footer (unused)
-- ❌ **components/input-error.tsx** - Input error display (may be used in forms, verify)
-- ❌ **components/icon.tsx** - Icon wrapper component (using lucide-react directly)
-- ❌ **components/heading.tsx** - Heading component (unused)
-- ❌ **components/heading-small.tsx** - Small heading variant (unused)
-- ❌ **components/delete-user.tsx** - User deletion component (unused)
-- ❌ **components/breadcrumbs.tsx** - Breadcrumb navigation (unused)
-- ❌ **components/appearance-tabs.tsx** - Appearance tabs component (may be used in settings/appearance.tsx, verify)
-- ❌ **components/appearance-dropdown.tsx** - Appearance dropdown (may be used in settings/appearance.tsx, verify)
-- ❌ **components/app-shell.tsx** - App shell wrapper (replaced by layouts)
-- ❌ **components/app-content.tsx** - App content wrapper (replaced by layouts)
-- ❌ **components/app-header.tsx** - App header component (replaced by sidebar layout)
-
-## Files Requiring Verification
-
-The following files may or may not be used. Need to check their import statements in active pages:
-
-### Potentially Used in Settings/Auth Pages
-- **components/input-error.tsx** - May be used in form validation
-- **components/appearance-tabs.tsx** - May be used in settings/appearance.tsx
-- **components/appearance-dropdown.tsx** - May be used in settings/appearance.tsx
-- **components/delete-user.tsx** - May be used in profile settings
-
-### Recommendation
-Search for import statements of these components in active pages before marking as unused.
+### Archived Components → `_archive/components/`
+- ❌ **user-info.tsx** - User info display component
+- ❌ **text-link.tsx** - Text link component
+- ❌ **nav-user.tsx** - Navigation user component (replaced by sidebar)
+- ❌ **nav-main.tsx** - Main navigation component (replaced by sidebar)
+- ❌ **nav-footer.tsx** - Navigation footer
+- ❌ **icon.tsx** - Icon wrapper component (using lucide-react directly)
+- ❌ **heading.tsx** - Heading component
+- ❌ **heading-small.tsx** - Small heading variant
+- ❌ **breadcrumbs.tsx** - Breadcrumb navigation
+- ❌ **app-shell.tsx** - App shell wrapper (replaced by layouts)
+- ❌ **app-content.tsx** - App content wrapper (replaced by layouts)
+- ❌ **app-header.tsx** - App header component (replaced by sidebar layout)
 
 ## Architecture Notes
 
@@ -144,11 +134,9 @@ The application has evolved from a modular training system to a unified session-
 - Voiceflow (chat)
 - ElevenLabs (audio)
 
-## Cleanup Recommendations
+## Cleanup Summary
 
-### Safe to Archive (Move to _archive folder)
-The following files can be safely moved to an `_archive` folder:
-
+### Files Moved to Archive
 ```bash
 resources/js/_archive/
 ├── pages/
@@ -172,19 +160,13 @@ resources/js/_archive/
     └── app-header.tsx
 ```
 
-### Verify Before Archiving
-Check import usage in active pages before archiving:
-- components/input-error.tsx
-- components/delete-user.tsx
-- components/appearance-tabs.tsx
-- components/appearance-dropdown.tsx
-
-### Do NOT Archive
+### Files Kept (Verified Active)
 - All files in `components/ui/` (ShadCN components)
 - All auth pages and layouts
 - All settings pages and layouts
 - Active session-related pages
 - All hooks
+- Form-related components (input-error, delete-user, appearance-tabs)
 
 ## Migration Path
 
