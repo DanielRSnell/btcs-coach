@@ -44,6 +44,9 @@
         {{-- Adaptive Card Extension for Voiceflow --}}
         <script src="/adaptive-card-extension.js?v={{ time() }}"></script>
 
+        {{-- Voiceflow DOM Observer - handles audio button modifications --}}
+        <script src="/voiceflow-dom.js?v={{ time() }}"></script>
+
         @routes
         @viteReactRefresh
         @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])

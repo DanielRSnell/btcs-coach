@@ -256,7 +256,9 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
             
             // Start checking 1 second after Voiceflow loads
             setTimeout(checkForNewSessions, 1000);
-            
+
+            // Voice button handler is now managed by /voiceflow-dom.js
+
             // If this is a new session (has pendingSessionName), also try direct registration
             if (pendingSessionName) {
                 console.log('🎯 NEW SESSION FLOW: Detected pendingSessionName, setting up direct registration...');
@@ -294,6 +296,9 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
             }
         }
     };
+
+    // Voice button click handler is now managed by /voiceflow-dom.js
+    // This ensures consistent behavior across all pages and modes
 
     // Initialize ChatInfo and mode-specific components
     useEffect(() => {
@@ -1028,7 +1033,7 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
             <div className="flex flex-col md:flex-row h-[calc(100vh-4rem)] md:h-[calc(100vh-8rem)] gap-3 md:gap-6 pt-3 md:pt-6">
                 {/* Desktop Sessions Sidebar */}
                 <div className="hidden md:flex w-80 flex-shrink-0">
-                    <Card className="h-full flex flex-col gap-1 py-0 pt-6">
+                    <Card className="h-full w-80 lg:w-full flex flex-col gap-1 py-0 pt-6">
                         <CardHeader className="flex-shrink-0">
                             <CardTitle className="flex items-center gap-2">
                                 <MessageCircle className="h-5 w-5" />

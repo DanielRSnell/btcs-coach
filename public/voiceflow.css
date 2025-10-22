@@ -34,12 +34,13 @@
 /* Desktop chat bubble width */
 @media (min-width: 640px) {
     :root, :host {
-        --chat-bubble-max-width: 570px;
+        --chat-bubble-max-width: 100%!important;
     }
 }
 
 
 .vfrc-message {
+    background: transparent!important;
     max-width: var(--chat-bubble-max-width)!important;
 }
 
@@ -47,8 +48,19 @@
     display: none!important;
 }
 
-.vfrc-footer button:not([title="Send" i]) {
+/* Hide all footer buttons except Send button */
+/* .vfrc-footer button:not([title="Send" i]) {
     display: none!important;
+} */
+
+/* Audio switcher button - make it visible and styled */
+.audio-switcher {
+    cursor: pointer !important;
+    transition: opacity 0.2s ease !important;
+}
+
+.audio-switcher:hover {
+    opacity: 0.7 !important;
 }
 
 .vfrc-user-response {
