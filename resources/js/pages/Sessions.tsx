@@ -347,12 +347,7 @@ export default function Sessions({ user, sessions, currentSessionId, currentSess
             job_code: user?.job_code || null,
             employment_status: user?.employment_status || null,
             team_members: user?.team_members || [],
-            pi_behavioral_pattern_id: user?.pi_behavioral_pattern_id || null,
-            pi_behavioral_pattern: user?.pi_behavioral_pattern || null,
-            pi_raw_scores: user?.pi_raw_scores || null,
             pi_assessed_at: user?.pi_assessed_at || null,
-            pi_notes: user?.pi_notes || null,
-            pi_profile: user?.pi_profile || null,
             has_pi_assessment: user?.has_pi_assessment || false,
             has_pi_profile: user?.has_pi_profile || false,
             voicechat_history: voicechat_history
